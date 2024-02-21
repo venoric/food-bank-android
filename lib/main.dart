@@ -100,6 +100,7 @@ class LoginScreen extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             TextField(
+              obscureText: true,
               decoration: InputDecoration(
                 labelText: 'Password',
               ),
@@ -128,9 +129,16 @@ class LoginScreen extends StatelessWidget {
                     password: 'Aminifoodbank123',
                   )
                 );
-                print("DEBUG: Has connection!");
                 // Check for existing account with inputted username and password
+                final result = await conn.execute(
+                  Sql.named('SELECT * FROM users WHERE username = @username AND password = @password'),
+                  parameters: {'username': _username, 'password': _password},
+                );
+                if (result.toList().isEmpty) {
+                  // Case: No user with the specified username and password exists in the database
 
+                  return;
+                }
                 // Close connection
                 await conn.close();
                 // Go to home screen if user details were entered correctly
@@ -150,7 +158,7 @@ class LoginScreen extends StatelessWidget {
 
 class RegistrationScreen extends StatelessWidget {
   // Necessary Variables for User Registration
-  late String _username = "", _password = "", _confirmPassword = "", _firstName = "", _lastName = "";
+  late String _username = "", _password = "", _confirmPassword = "", _firstName = "", _lastName = "", _email = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,8 +214,17 @@ class RegistrationScreen extends StatelessWidget {
                 labelText: 'Last Name',
               ),
               onChanged: (lastName) {
-                // Set username
+                // Set lastName
                 _lastName = lastName;
+              },
+            ),
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Email',
+              ),
+              onChanged: (email) {
+                // Set email
+                _email = email;
               },
             ),
             SizedBox(height: 16.0),
@@ -215,8 +232,8 @@ class RegistrationScreen extends StatelessWidget {
               onPressed: () async {
                 // --- User Registration ---
 
-                // Check for empty username, password, confirmPassword, firstName, or lastName
-                if (_username.isEmpty || _password.isEmpty || _confirmPassword.isEmpty || _firstName.isEmpty || _lastName.isEmpty) {
+                // Check for empty _username, _password, _confirmPassword, _firstName, _lastName, or _email
+                if (_username.isEmpty || _password.isEmpty || _confirmPassword.isEmpty || _firstName.isEmpty || _lastName.isEmpty || _email.isEmpty) {
                   // Display error message to user
 
                   return;
@@ -232,9 +249,16 @@ class RegistrationScreen extends StatelessWidget {
                     password: 'Aminifoodbank123',
                   )
                 );
-                print("DEBUG: Has connection!");
-                // Check for existing account details (such as username and email)
-
+                // Check for existing account details (i.e. username and email)
+                final result = await conn.execute(
+                  Sql.named('SELECT * FROM users WHERE username = @username OR email = @email'),
+                  parameters: {'username': _username, 'email': _email},
+                );
+                if (result.toList().isNotEmpty) {
+                  // Case: A user with the specified username and/or email already exists in the database
+                  print("DEBUG: A user with the specified username and/or password already exists in the database.");
+                  return;
+                }
                 // Show registration success message
 
                 // Close connection
