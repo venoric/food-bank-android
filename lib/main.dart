@@ -117,28 +117,17 @@ class LoginScreen extends StatelessWidget {
                 // --- User Login ---
 
                 // Check for empty username or password
-                if (_username.isEmpty) {
+                if (_username.isEmpty || _password.isEmpty) {
                   // Display error message to user
                   Fluttertoast.showToast(
-                    msg: 'Please type in a username.',
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                    timeInSecForIosWeb: 1,
-                    backgroundColor: Colors.grey,
-                    textColor: Colors.black
-                  );
-                  return;
-                }
-                if (_password.isEmpty) {
-                  // Display error message to user
-                  Fluttertoast.showToast(
-                      msg: 'Please type in a password.',
+                      msg: 'Please type in a username and/or password.',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.BOTTOM,
                       timeInSecForIosWeb: 1,
                       backgroundColor: Colors.grey,
                       textColor: Colors.black
                   );
+                  return;
                 }
                 // Connect to DB
                 final conn = await Connection.open(
@@ -262,11 +251,32 @@ class RegistrationScreen extends StatelessWidget {
                 // Check for empty _username, _password, _confirmPassword, _firstName, _lastName, or _email
                 if (_username.isEmpty || _password.isEmpty || _confirmPassword.isEmpty || _firstName.isEmpty || _lastName.isEmpty || _email.isEmpty) {
                   // Display error message to user
-
+                  Fluttertoast.showToast(
+                      msg: 'Please fill out every field.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey,
+                      textColor: Colors.black
+                  );
                   return;
                 }
                 // Validate input
+                // - Check for whitespaces in any of the fields
 
+                // - Check for un-matching passwords
+                if (_password != _confirmPassword) {
+                  // Display error message to user
+                  Fluttertoast.showToast(
+                      msg: 'Please type in matching passwords.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey,
+                      textColor: Colors.black
+                  );
+                  return;
+                }
                 // Connect to DB
                 final conn = await Connection.open(
                   Endpoint(
@@ -277,14 +287,14 @@ class RegistrationScreen extends StatelessWidget {
                   )
                 );
                 // Check for existing account details (i.e. username and email)
-                final result = await conn.execute(
+                final accountCheckResult = await conn.execute(
                   Sql.named('SELECT * FROM users WHERE username = @username OR email = @email'),
                   parameters: {'username': _username, 'email': _email},
                 );
-                if (result.toList().isNotEmpty) {
+                if (accountCheckResult.toList().isNotEmpty) {
                   // Case: A user with the specified username and/or email already exists in the database
                   Fluttertoast.showToast(
-                      msg: 'A user with the specified username and/or password already exists.',
+                      msg: 'A user with the specified username and/or email already exists.',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.BOTTOM,
                       timeInSecForIosWeb: 1,
@@ -293,6 +303,11 @@ class RegistrationScreen extends StatelessWidget {
                   );
                   return;
                 }
+                // Add user to the database
+                final addUserResult = await conn.execute(
+                  Sql.named('INSERT INTO users (username, password, first_name, last_name, email) VALUES (@username, @password, @first_name, @last_name, @email)'),
+                  parameters: {'username': _username, 'password': _password, 'first_name': _firstName, 'last_name': _lastName, 'email': _email},
+                );
                 // Show registration success message
                 Fluttertoast.showToast(
                     msg: 'Registration successful!',
@@ -334,6 +349,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('FoodBank'),
+      ),
+      body: Column(
+        children: [
+          Center(
+            child: Container(
+              child: Text('Welcome to FoodBank!'),
+            ),
+          ),
+        ],
       ),
     );
   }
