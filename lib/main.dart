@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() {
   runApp(const App());
@@ -12,6 +13,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      builder: FToastBuilder(),
       title: 'FoodBank',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -115,10 +117,28 @@ class LoginScreen extends StatelessWidget {
                 // --- User Login ---
 
                 // Check for empty username or password
-                if (_username.isEmpty || _password.isEmpty) {
+                if (_username.isEmpty) {
                   // Display error message to user
-
+                  Fluttertoast.showToast(
+                    msg: 'Please type in a username.',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: Colors.grey,
+                    textColor: Colors.black
+                  );
                   return;
+                }
+                if (_password.isEmpty) {
+                  // Display error message to user
+                  Fluttertoast.showToast(
+                      msg: 'Please type in a password.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey,
+                      textColor: Colors.black
+                  );
                 }
                 // Connect to DB
                 final conn = await Connection.open(
@@ -136,7 +156,14 @@ class LoginScreen extends StatelessWidget {
                 );
                 if (result.toList().isEmpty) {
                   // Case: No user with the specified username and password exists in the database
-
+                  Fluttertoast.showToast(
+                      msg: 'No user with the supplied credentials exists.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey,
+                      textColor: Colors.black
+                  );
                   return;
                 }
                 // Close connection
@@ -256,11 +283,25 @@ class RegistrationScreen extends StatelessWidget {
                 );
                 if (result.toList().isNotEmpty) {
                   // Case: A user with the specified username and/or email already exists in the database
-                  print("DEBUG: A user with the specified username and/or password already exists in the database.");
+                  Fluttertoast.showToast(
+                      msg: 'A user with the specified username and/or password already exists.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey,
+                      textColor: Colors.black
+                  );
                   return;
                 }
                 // Show registration success message
-
+                Fluttertoast.showToast(
+                    msg: 'Registration successful!',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    timeInSecForIosWeb: 1,
+                    backgroundColor: Colors.grey,
+                    textColor: Colors.black
+                );
                 // Close connection
                 await conn.close();
                 // Go to home screen
