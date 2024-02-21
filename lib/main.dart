@@ -126,8 +126,7 @@ class LoginScreen extends StatelessWidget {
                     database: 'food-bank-database',
                     username: 'postgres',
                     password: 'Aminifoodbank123',
-                  ),
-                  settings: ConnectionSettings(sslMode: SslMode.verifyFull),
+                  )
                 );
                 print("DEBUG: Has connection!");
                 // Check for existing account with inputted username and password
@@ -231,8 +230,7 @@ class RegistrationScreen extends StatelessWidget {
                     database: 'food-bank-database',
                     username: 'postgres',
                     password: 'Aminifoodbank123',
-                  ),
-                  settings: ConnectionSettings(sslMode: SslMode.verifyFull),
+                  )
                 );
                 print("DEBUG: Has connection!");
                 // Check for existing account details (such as username and email)
