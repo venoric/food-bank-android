@@ -181,7 +181,7 @@ class RegistrationScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Registration'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
