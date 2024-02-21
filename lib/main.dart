@@ -39,7 +39,7 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome to FoodBank!'),
+        title: Text('Welcome to FoodBank'),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -120,7 +120,7 @@ class LoginScreen extends StatelessWidget {
                 if (_username.isEmpty || _password.isEmpty) {
                   // Display error message to user
                   Fluttertoast.showToast(
-                      msg: 'Please type in a username and/or password.',
+                      msg: 'Please type in a username and password.',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.BOTTOM,
                       timeInSecForIosWeb: 1,
@@ -354,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Center(
             child: Container(
-              child: Text('Welcome to FoodBank!'),
+              child: Text('Welcome to FoodBank'),
             ),
           ),
         ],
