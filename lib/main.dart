@@ -2,6 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+// Recipe Class
+class Recipe {
+  // Member Variables
+  late String _name;
+  late String _ingredients;
+  late String _instructions;
+  late String _category;
+  late String _servings;
+  late String _imageURL;
+  // Constructor
+  Recipe(String recipeName, String recipeIngredients, String recipeInstructions, String recipeCategory, String recipeServings, String recipeImageURL) {
+    this._name = recipeName;
+    this._ingredients = recipeIngredients;
+    this._instructions = recipeInstructions;
+    this._category = recipeCategory;
+    this._servings = recipeServings;
+    this._imageURL = recipeImageURL;
+  }
+}
+
 void main() {
   runApp(const FoodBankApp());
 }
@@ -436,6 +456,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 }
 
+// Home Screen
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
