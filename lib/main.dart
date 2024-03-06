@@ -509,20 +509,163 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<List<Recipe>> (
+        future: fetchRecipes(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            // Case: Something went wrong with fetching recipe data from DB
+            return const Center(child: Text('Error: Unable to fetch recipes.'));
+          } else if (snapshot.hasData) {
+            // Case: Recipe data DB fetching successful
+            // Get recipe information from DB
+            List<Recipe> recipes = snapshot.data!;
+            return Scaffold(
+                body: CustomScrollView(
+                  slivers: <Widget>[
+                    SliverAppBar(
+                      automaticallyImplyLeading: false, // Remove back button
+                      title: const Text('FoodBank Home'),
+                      pinned: true,
+                      actions: <Widget>[
+                        PopupMenuButton(
+                          icon: const Icon(Icons.more_vert),
+                          itemBuilder: (context) {
+                            return [
+                              PopupMenuItem(
+                                child: const Text('Log Out'),
+                                onTap: () {
+                                  // Remove user session
+                                  SecureStorage().unsetLoggedInUser('loggedInUser');
+                                  // Navigate back to landing screen
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LandingScreen()),
+                                        (_) => false,
+                                  );
+                                },
+                              )
+                            ];
+                          },
+                        )
+                      ],
+                    ),
+                    SliverList.separated(
+                      itemCount: recipes.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(recipes.elementAt(index)._name),
+                          leading: Image.network(recipes.elementAt(index)._imageURL),
+                          onTap: () {
+                            // Go to screen for selected recipe and pass over the chosen recipe's Recipe instance as well
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => RecipeInformationScreen(recipes.elementAt(index))),
+                            );
+                          },
+                        );
+                      },
+                      separatorBuilder: (context, index) => Divider(),
+                    )
+                  ],
+                )
+            );
+          } else {
+            // Case: Recipe Data Still Being Fetched
+            // Display loading indicator
+            return Container(
+              color: Colors.white,
+              child: const Center(
+                child: CircularProgressIndicator()
+              ),
+            );
+          }
+        }
+    );
+  }
+}
+
+class RecipeInformationScreen extends StatelessWidget {
+  late final Recipe _currentRecipe;
+
+  RecipeInformationScreen(Recipe recipe, {super.key}) {
+    this._currentRecipe = recipe;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('FoodBank'),
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
-        children: [
-          Center(
-            child: Container(
-              child: const Text('Welcome to FoodBank'),
-            ),
+      appBar: AppBar(),
+      body: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              // Display recipe name
+              const Text('Recipe', style: TextStyle(decoration: TextDecoration.underline)),
+              Text(_currentRecipe._name),
+              const SizedBox(height: 10),
+              // Display category
+              const Text('Category', style: TextStyle(decoration: TextDecoration.underline)),
+              Text(_currentRecipe._category),
+              const SizedBox(height: 10),
+              // Display servings
+              const Text('Servings', style: TextStyle(decoration: TextDecoration.underline)),
+              Text(_currentRecipe._servings),
+              const SizedBox(height: 10),
+              // Display recipe image
+              Image.network(_currentRecipe._imageURL),
+              const SizedBox(height: 10),
+              // Display ingredient list
+              const Text('Ingredients', style: TextStyle(decoration: TextDecoration.underline)),
+              Text('* ${_currentRecipe._ingredients.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
+              const SizedBox(height: 10),
+              // Display instructions
+              const Text('Instructions', style: TextStyle(decoration: TextDecoration.underline)),
+              Text('* ${_currentRecipe._instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
+              const SizedBox(height: 10),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+Future<List<Recipe>> fetchRecipes() async {
+  late List<Recipe> recipes = <Recipe>[];
+  // Connect to DB to fetch recipes
+  final conn = await Connection.open(
+      Endpoint(
+        host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+        database: 'food-bank-database',
+        username: 'postgres',
+        password: 'Aminifoodbank123',
+      )
+  );
+  // Get all recipe names and image URLs for display
+  final recipeFetchResult = await conn.execute('SELECT * FROM recipe');
+  final recipeFetchResultList = recipeFetchResult.toList();
+  if (recipeFetchResultList.isEmpty) {
+    // Error Message
+    Fluttertoast.showToast(
+        msg: 'No recipes found.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black
+    );
+    return recipes;
+  }
+  for (var i = 0; i < recipeFetchResultList.length; ++i) {
+    // Extract each recipe's details from the DB call results
+    String recipeName = recipeFetchResultList.elementAt(i)[1]!.toString();
+    String recipeIngredients = recipeFetchResultList.elementAt(i)[2]!.toString();
+    String recipeInstructions = recipeFetchResultList.elementAt(i)[3]!.toString();
+    String recipeCategory = recipeFetchResultList.elementAt(i)[4]!.toString();
+    String recipeServings = recipeFetchResultList.elementAt(i)[5]!.toString();
+    String recipeImageURL = recipeFetchResultList.elementAt(i)[6]!.toString();
+    recipes.add(Recipe(recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
+  }
+  return recipes;
 }
