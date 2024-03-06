@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Recipe Class
 class Recipe {
@@ -37,9 +38,46 @@ class FoodBankApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LandingScreen(),
+      home: FutureBuilder(
+        future: SecureStorage().retrieveLoggedInUser("loggedInUser"),
+        builder: (context, snapshot) {
+          // Redirect user based on whether or not they are logged in
+          if (snapshot.hasData && snapshot.data != 'null') {
+            return const HomeScreen();
+          } else {
+            return const LandingScreen();
+          }
+        },
+      ),
       debugShowCheckedModeBanner: false,
     );
+  }
+}
+
+// "Secure Storage" Class for Login Check
+class SecureStorage {
+  final _storage = const FlutterSecureStorage();
+
+  // Store the username of the user who logged in
+  setLoggedInUser(String key, String loggedInUser) async {
+    await _storage.write(key: 'loggedInUser', value: loggedInUser);
+  }
+
+  // Retrieve the username of the user who logged in (if applicable)
+  Future<String> retrieveLoggedInUser(String key) async {
+    String? loggedInUser = await _storage.read(key: key);
+    if (loggedInUser != null) {
+      // Case: User is logged in
+      return loggedInUser;
+    } else {
+      // Case: No user is logged in
+      return 'null';
+    }
+  }
+
+  // Delete the username of the user who logged out
+  unsetLoggedInUser(String key) async {
+    await _storage.delete(key: key);
   }
 }
 
@@ -185,6 +223,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             timeInSecForIosWeb: 1
                         );
                       }
+                      // Store user session
+                      SecureStorage().setLoggedInUser('loggedInUser', _username);
                       // Navigate to home screen
                       Navigator.push(
                         context,
@@ -389,7 +429,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             return;
                           }
                           if (existingEmailResultList.isNotEmpty) {
-                            // Case: An account with the provided username already exists in the DB
+                            // Case: An account with the provided email already exists in the DB
                             // Display message
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -430,6 +470,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   timeInSecForIosWeb: 1
                               );
                             }
+                            // Store user session
+                            SecureStorage().setLoggedInUser('loggedInUser', _username);
                             // Navigate to home screen
                             Navigator.push(
                               context,
