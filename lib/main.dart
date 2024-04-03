@@ -29,12 +29,15 @@ class UserProfile {
   late String _username;
   late String _firstName;
   late String _lastName;
+  late String _email;
   late List<String> _userAllergies;
   // Constructor
-  UserProfile(String username, String firstName, String lastName) {
+  UserProfile(String username, String firstName, String lastName, String email) {
     this._username = username;
     this._firstName = firstName;
     this._lastName = lastName;
+    this._email = email;
+    this._userAllergies = [];
   }
   // Methods
   void addAllergy(String currentAllergy) {
@@ -58,7 +61,7 @@ class FoodBankApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: FutureBuilder(
-        future: SecureStorage().retrieveLoggedInUser("loggedInUser"),
+        future: SecureStorage().retrieveLoggedInUser('loggedInUser'),
         builder: (context, snapshot) {
           // Redirect user based on whether or not they are logged in
           if (snapshot.hasData && snapshot.data != 'null') {
@@ -551,6 +554,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (context) {
                             return [
                               PopupMenuItem(
+                                child: const Text('User Profile'),
+                                onTap: () {
+                                  // Navigate to the user profile screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+                                  );
+                                },
+                              ),
+                              PopupMenuItem(
                                 child: const Text('Log Out'),
                                 onTap: () {
                                   // Remove user session
@@ -562,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         (_) => false,
                                   );
                                 },
-                              )
+                              ),
                             ];
                           },
                         )
@@ -690,7 +703,6 @@ Future<List<Recipe>> fetchRecipes() async {
   return recipes;
 }
 
-/*
 // User Profile Screen
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -706,19 +718,45 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       future: fetchUserProfile(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          // Case: Something went wrong with fetching recipe data from DB
+          // Case: Something went wrong with fetching user profile data from DB
           return const Center(child: Text('Error: Unable to access user information.'));
         } else if (snapshot.hasData) {
-          // Case: Recipe data DB fetching successful
-          // Get recipe information from DB
+          // Case: User profile DB fetching successful
+          // Get user profile information from DB
           UserProfile currentUser = snapshot.data!;
           return Scaffold(
+            appBar: AppBar(),
             body: SingleChildScrollView(
-
+              child: Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Display username
+                    const Text('Username', style: TextStyle(decoration: TextDecoration.underline)),
+                    Text(currentUser._username),
+                    const SizedBox(height: 10),
+                    // Display first name
+                    const Text('First Name', style: TextStyle(decoration: TextDecoration.underline)),
+                    Text(currentUser._firstName),
+                    const SizedBox(height: 10),
+                    // Display last name
+                    const Text('Last Name', style: TextStyle(decoration: TextDecoration.underline)),
+                    Text(currentUser._lastName),
+                    const SizedBox(height: 10),
+                    // Display email
+                    const Text('Email', style: TextStyle(decoration: TextDecoration.underline)),
+                    Text(currentUser._email),
+                    const SizedBox(height: 10),
+                    // Display allergies
+                    // Status: Not Done
+                  ],
+                ),
+              ),
             ),
           );
         } else {
-          // Case: Recipe Data Still Being Fetched
+          // Case: User Profile Data Still Being Fetched
           // Display loading indicator
           return Container(
             color: Colors.white,
@@ -733,7 +771,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 }
 
 // Method to Fetch User Profile from DB
-Future<UserProfile> fetchUserProfile(String currentUsername) async {
+Future<UserProfile> fetchUserProfile() async {
+  // Fetch currently logged in user's username
+  final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
   // Connect to DB to fetch user information
   final conn = await Connection.open(
       Endpoint(
@@ -745,10 +785,26 @@ Future<UserProfile> fetchUserProfile(String currentUsername) async {
   );
   // Get user information using DB query
   final userProfileFetchResult = await conn.execute(
-    Sql.named('SELECT * FROM allergy WHERE username = @username'),
+    Sql.named('SELECT * FROM users WHERE username = @username'),
     parameters: {'username': currentUsername},
   );
-  late UserProfile currentUserProfile;
+  final fetchedUsername = userProfileFetchResult[0][0].toString();
+  final fetchedFirstName = userProfileFetchResult[0][2].toString();
+  final fetchedLastName = userProfileFetchResult[0][3].toString();
+  final fetchedEmail = userProfileFetchResult[0][4].toString();
+  // Now, get user allergy information
+  final userAllergiesFetchResult = await conn.execute(
+    Sql.named('SELECT * FROM user_allergy WHERE username = @username'),
+    parameters: {'username': currentUsername},
+  );
+  // Create variable of type 'UserProfile' with the fetched data
+  late UserProfile currentUserProfile = UserProfile(fetchedUsername, fetchedFirstName, fetchedLastName, fetchedEmail);
+  int numberOfAllergies = userAllergiesFetchResult.length;
+  // Now, add this user's allergies to the UserProfile variable
+  for (int i = 0; i < numberOfAllergies; ++i) {
+    // Add current allergy
+    final String currentAllergy = userAllergiesFetchResult[i][1].toString();
+    currentUserProfile.addAllergy(currentAllergy);
+  }
   return currentUserProfile;
 }
- */
