@@ -23,6 +23,25 @@ class Recipe {
   }
 }
 
+// User Profile Class
+class UserProfile {
+  // Member Variables
+  late String _username;
+  late String _firstName;
+  late String _lastName;
+  late List<String> _userAllergies;
+  // Constructor
+  UserProfile(String username, String firstName, String lastName) {
+    this._username = username;
+    this._firstName = firstName;
+    this._lastName = lastName;
+  }
+  // Methods
+  void addAllergy(String currentAllergy) {
+    this._userAllergies.add(currentAllergy);
+  }
+}
+
 void main() {
   runApp(const FoodBankApp());
 }
@@ -631,6 +650,7 @@ class RecipeInformationScreen extends StatelessWidget {
   }
 }
 
+// Method to Fetch Recipes from DB
 Future<List<Recipe>> fetchRecipes() async {
   late List<Recipe> recipes = <Recipe>[];
   // Connect to DB to fetch recipes
@@ -669,3 +689,66 @@ Future<List<Recipe>> fetchRecipes() async {
   }
   return recipes;
 }
+
+/*
+// User Profile Screen
+class UserProfileScreen extends StatefulWidget {
+  const UserProfileScreen({super.key});
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<UserProfile> (
+      future: fetchUserProfile(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          // Case: Something went wrong with fetching recipe data from DB
+          return const Center(child: Text('Error: Unable to access user information.'));
+        } else if (snapshot.hasData) {
+          // Case: Recipe data DB fetching successful
+          // Get recipe information from DB
+          UserProfile currentUser = snapshot.data!;
+          return Scaffold(
+            body: SingleChildScrollView(
+
+            ),
+          );
+        } else {
+          // Case: Recipe Data Still Being Fetched
+          // Display loading indicator
+          return Container(
+            color: Colors.white,
+            child: const Center(
+                child: CircularProgressIndicator()
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+// Method to Fetch User Profile from DB
+Future<UserProfile> fetchUserProfile(String currentUsername) async {
+  // Connect to DB to fetch user information
+  final conn = await Connection.open(
+      Endpoint(
+        host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+        database: 'food-bank-database',
+        username: 'postgres',
+        password: 'Aminifoodbank123',
+      )
+  );
+  // Get user information using DB query
+  final userProfileFetchResult = await conn.execute(
+    Sql.named('SELECT * FROM allergy WHERE username = @username'),
+    parameters: {'username': currentUsername},
+  );
+  late UserProfile currentUserProfile;
+  return currentUserProfile;
+}
+ */
