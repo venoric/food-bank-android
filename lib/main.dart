@@ -712,6 +712,8 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  final List<String> allergyList = <String>['dairy', 'eggs', 'fish', 'peanuts', 'wheat'];
+  String? selectedAllergy;
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<UserProfile> (
@@ -725,7 +727,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           // Get user profile information from DB
           UserProfile currentUser = snapshot.data!;
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              title: const Text('User Profile'),
+            ),
             body: SingleChildScrollView(
               child: Align(
                 alignment: Alignment.center,
@@ -748,8 +752,83 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     const Text('Email', style: TextStyle(decoration: TextDecoration.underline)),
                     Text(currentUser._email),
                     const SizedBox(height: 10),
-                    // Display allergies
-                    // Status: Not Done
+                    // Display user allergies
+                    const Text('Allergies', style: TextStyle(decoration: TextDecoration.underline)),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ...currentUser._userAllergies.map((allergy) => Align(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(allergy),
+                                IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () async {
+                                    // Remove the user's allergy from the user profile list
+                                    currentUser._userAllergies.remove(allergy);
+                                    // Remove the user's allergy from the 'user_allergy' table
+                                    final conn = await Connection.open(
+                                        Endpoint(
+                                          host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+                                          database: 'food-bank-database',
+                                          username: 'postgres',
+                                          password: 'Aminifoodbank123',
+                                        )
+                                    );
+                                    // Remove row from DB table with allergy for this user
+                                    final removeAllergyFromUserDBResult = await conn.execute(
+                                      Sql.named('DELETE FROM user_allergy WHERE username = @username AND allergy = @allergy'),
+                                      parameters: {'username': currentUser._username, 'allergy': allergy},
+                                    );
+                                    // Refresh state
+                                    setState(() {});
+                                  },
+                                ),
+                              ],
+                            ),
+                          )).toList(),
+                        ],
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      hint: const Text('Add Allergy'),
+                      value: selectedAllergy,
+                      onChanged: (value) async {
+                        if (value != null && !currentUser._userAllergies.contains(value)) {
+                          // Add new allergy to user profile
+                          currentUser._userAllergies.add(value);
+                          // Add row with new allergy to user_allergy for this user
+                          final conn = await Connection.open(
+                              Endpoint(
+                                host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+                                database: 'food-bank-database',
+                                username: 'postgres',
+                                password: 'Aminifoodbank123',
+                              )
+                          );
+                          final addAllergyToUserDBResult = await conn.execute(
+                            Sql.named('INSERT INTO user_allergy VALUES (@username, @allergy)'),
+                            parameters: {'username': currentUser._username, 'allergy': value},
+                          );
+                          // Refresh state
+                          setState(() {});
+                        } else {
+                          // Display error message
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('You cannot add the same allergy more than once.'))
+                            );
+                          }
+                        }
+                      },
+                      items: allergyList.map((allergy) => DropdownMenuItem<String>(
+                        value: allergy,
+                        child: Text(allergy),
+                      )).toList(),
+                    ),
                   ],
                 ),
               ),
