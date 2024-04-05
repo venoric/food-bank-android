@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // Recipe Class
 class Recipe {
   // Member Variables
+  late int _recipeID;
   late String _name;
   late String _ingredients;
   late String _instructions;
@@ -13,7 +14,8 @@ class Recipe {
   late String _servings;
   late String _imageURL;
   // Constructor
-  Recipe(String recipeName, String recipeIngredients, String recipeInstructions, String recipeCategory, String recipeServings, String recipeImageURL) {
+  Recipe(int recipeID, String recipeName, String recipeIngredients, String recipeInstructions, String recipeCategory, String recipeServings, String recipeImageURL) {
+    this._recipeID = recipeID;
     this._name = recipeName;
     this._ingredients = recipeIngredients;
     this._instructions = recipeInstructions;
@@ -564,6 +566,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 },
                               ),
                               PopupMenuItem(
+                                child: const Text('Favorite Recipes'),
+                                onTap: () {
+                                  // Navigate to the favorite recipes screen
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const FavoriteRecipesScreen()),
+                                  );
+                                },
+                              ),
+                              PopupMenuItem(
                                 child: const Text('Log Out'),
                                 onTap: () {
                                   // Remove user session
@@ -692,13 +704,14 @@ Future<List<Recipe>> fetchRecipes() async {
   }
   for (var i = 0; i < recipeFetchResultList.length; ++i) {
     // Extract each recipe's details from the DB call results
+    int recipeID = int.parse(recipeFetchResultList.elementAt(i)[0]!.toString());
     String recipeName = recipeFetchResultList.elementAt(i)[1]!.toString();
     String recipeIngredients = recipeFetchResultList.elementAt(i)[2]!.toString();
     String recipeInstructions = recipeFetchResultList.elementAt(i)[3]!.toString();
     String recipeCategory = recipeFetchResultList.elementAt(i)[4]!.toString();
     String recipeServings = recipeFetchResultList.elementAt(i)[5]!.toString();
     String recipeImageURL = recipeFetchResultList.elementAt(i)[6]!.toString();
-    recipes.add(Recipe(recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
+    recipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
   }
   return recipes;
 }
@@ -886,4 +899,136 @@ Future<UserProfile> fetchUserProfile() async {
     currentUserProfile.addAllergy(currentAllergy);
   }
   return currentUserProfile;
+}
+
+// Favorite Recipes Screen
+class FavoriteRecipesScreen extends StatefulWidget {
+  const FavoriteRecipesScreen({super.key});
+
+  @override
+  State<FavoriteRecipesScreen> createState() => _FavoriteRecipesScreenState();
+}
+
+class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Recipe>> (
+        future: fetchFavoriteRecipes(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            // Case: Something went wrong with fetching favorite recipe data from DB
+            return const Center(child: Text('Error: Unable to fetch favorite recipes for current user.'));
+          } else if (snapshot.hasData) {
+            // Case: Recipe data DB fetching successful
+            // Get favorite recipe information from DB
+            List<Recipe> favoriteRecipes = snapshot.data!;
+            return Scaffold(
+                body: CustomScrollView(
+                  slivers: <Widget>[
+                    const SliverAppBar(
+                        title: Text('Favorite Recipes'),
+                    ),
+                    SliverList.separated(
+                      itemCount: favoriteRecipes.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(favoriteRecipes.elementAt(index)._name),
+                          leading: Image.network(favoriteRecipes.elementAt(index)._imageURL),
+                          onTap: () {
+                            // Go to screen for selected favorite recipe and pass over the chosen recipe's Recipe instance as well
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => RecipeInformationScreen(favoriteRecipes.elementAt(index))),
+                            );
+                          },
+                          trailing: GestureDetector(
+                            onTap: () async {
+                              // Remove favorite recipe from DB for current user
+                              final conn = await Connection.open(
+                                  Endpoint(
+                                    host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+                                    database: 'food-bank-database',
+                                    username: 'postgres',
+                                    password: 'Aminifoodbank123',
+                                  )
+                              );
+                              // Fetch currently logged in user's username
+                              final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+                              final removeFavoriteRecipeFromDBResult = await conn.execute(
+                                Sql.named('DELETE FROM user_favorite WHERE username = @username AND recipe_id = @recipe_id'),
+                                parameters: {'username': currentUsername, 'recipe_id': favoriteRecipes.elementAt(index)._recipeID},
+                              );
+                              // Remove favorite recipe from local list
+                              favoriteRecipes.removeAt(index);
+                              // Refresh state
+                              setState(() {});
+                            },
+                            child: Icon(Icons.delete),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (context, index) => Divider(),
+                    )
+                  ],
+                )
+            );
+          } else {
+            // Case: Recipe Data Still Being Fetched
+            // Display loading indicator
+            return Container(
+              color: Colors.white,
+              child: const Center(
+                  child: CircularProgressIndicator()
+              ),
+            );
+          }
+        }
+    );
+  }
+}
+
+// Method to Fetch Favorite Recipes from DB
+Future<List<Recipe>> fetchFavoriteRecipes() async {
+  late List<Recipe> favoriteRecipes = <Recipe>[];
+  // Fetch currently logged in user's username
+  final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+  // Connect to DB to fetch favorite recipes
+  final conn = await Connection.open(
+      Endpoint(
+        host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+        database: 'food-bank-database',
+        username: 'postgres',
+        password: 'Aminifoodbank123',
+      )
+  );
+  // Get all recipe id's that correspond to what recipes the user favorited
+  final favoriteRecipesFetchResult = await conn.execute(
+    Sql.named('SELECT recipe.* FROM user_favorite JOIN recipe ON recipe_id = recipe.id WHERE user_favorite.username = @username'),
+    parameters: {'username': currentUsername},
+  );
+  final favoriteRecipesFetchResultList = favoriteRecipesFetchResult.toList();
+  if (favoriteRecipesFetchResultList.isEmpty) {
+    // Error Message
+    Fluttertoast.showToast(
+        msg: 'No favorite recipes found.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black
+    );
+    return favoriteRecipes;
+  }
+  // Extract each recipe's details from the DB call results
+  for (var i = 0; i < favoriteRecipesFetchResultList.length; ++i) {
+    int recipeID = int.parse(favoriteRecipesFetchResultList.elementAt(i)[0]!.toString());
+    String recipeName = favoriteRecipesFetchResultList.elementAt(i)[1]!.toString();
+    String recipeIngredients = favoriteRecipesFetchResultList.elementAt(i)[2]!.toString();
+    String recipeInstructions = favoriteRecipesFetchResultList.elementAt(i)[3]!.toString();
+    String recipeCategory = favoriteRecipesFetchResultList.elementAt(i)[4]!.toString();
+    String recipeServings = favoriteRecipesFetchResultList.elementAt(i)[5]!.toString();
+    String recipeImageURL = favoriteRecipesFetchResultList.elementAt(i)[6]!.toString();
+    favoriteRecipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
+  }
+  return favoriteRecipes;
 }
