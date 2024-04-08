@@ -13,8 +13,9 @@ class Recipe {
   late String _category;
   late String _servings;
   late String _imageURL;
+  late String _poster;
   // Constructor
-  Recipe(int recipeID, String recipeName, String recipeIngredients, String recipeInstructions, String recipeCategory, String recipeServings, String recipeImageURL) {
+  Recipe(int recipeID, String recipeName, String recipeIngredients, String recipeInstructions, String recipeCategory, String recipeServings, String recipeImageURL, String poster) {
     this._recipeID = recipeID;
     this._name = recipeName;
     this._ingredients = recipeIngredients;
@@ -22,6 +23,7 @@ class Recipe {
     this._category = recipeCategory;
     this._servings = recipeServings;
     this._imageURL = recipeImageURL;
+    this._poster = poster;
   }
 }
 
@@ -711,7 +713,8 @@ Future<List<Recipe>> fetchRecipes() async {
     String recipeCategory = recipeFetchResultList.elementAt(i)[4]!.toString();
     String recipeServings = recipeFetchResultList.elementAt(i)[5]!.toString();
     String recipeImageURL = recipeFetchResultList.elementAt(i)[6]!.toString();
-    recipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
+    String recipePoster = recipeFetchResultList.elementAt(i)[7]!.toString();
+    recipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL, recipePoster));
   }
   return recipes;
 }
@@ -1028,7 +1031,169 @@ Future<List<Recipe>> fetchFavoriteRecipes() async {
     String recipeCategory = favoriteRecipesFetchResultList.elementAt(i)[4]!.toString();
     String recipeServings = favoriteRecipesFetchResultList.elementAt(i)[5]!.toString();
     String recipeImageURL = favoriteRecipesFetchResultList.elementAt(i)[6]!.toString();
-    favoriteRecipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL));
+    String recipePoster = favoriteRecipesFetchResultList.elementAt(i)[7]!.toString();
+    favoriteRecipes.add(Recipe(recipeID, recipeName, recipeIngredients, recipeInstructions, recipeCategory, recipeServings, recipeImageURL, recipePoster));
   }
   return favoriteRecipes;
 }
+
+/*
+// Add Own Recipe Screen
+class AddRecipeScreen extends StatefulWidget {
+  const AddRecipeScreen({super.key});
+
+  @override
+  State<AddRecipeScreen> createState() => _AddRecipeScreenState();
+}
+
+class _AddRecipeScreenState extends State<AddRecipeScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  late String _recipeName, _recipeCategory, _recipeIngredients, _recipeInstructions;
+  late int _recipeNumberServings;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Add Recipe')),
+      body: Form(
+        key: _formKey,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(
+                width: 300.0,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Recipe Name',
+                  ),
+                  validator: (inputtedRecipeName) {
+                    if (inputtedRecipeName == null || inputtedRecipeName.isEmpty) {
+                      return 'Please enter a recipe name';
+                    }
+                    // Set _recipeName for later use (DB query)
+                    _recipeName = inputtedRecipeName;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 10.0,
+              ),
+              SizedBox(
+                width: 300.0,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                  ),
+                  validator: (inputtedCategory) {
+                    if (inputtedCategory == null || inputtedCategory.isEmpty) {
+                      return 'Please enter a category for this recipe';
+                    }
+                    // Set _recipeCategory for later use (DB query)
+                    _recipeCategory = inputtedCategory;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 30.0,
+              ),
+              SizedBox(
+                width: 300.0,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Servings',
+                  ),
+                  validator: (inputtedServings) {
+                    if (inputtedServings == null || inputtedServings.isEmpty) {
+                      return 'Please enter the number of servings for this recipe';
+                    }
+                    // Set _recipeCategory for later use (DB query)
+                    _recipeNumberServings = inputtedServings;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 30.0,
+              ),
+              SizedBox(
+                width: 300.0,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Ingredients',
+                  ),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  validator: (inputtedIngredients) {
+                    if (inputtedIngredients == null || inputtedIngredients.isEmpty) {
+                      return 'Please enter the ingredients for this recipe';
+                    }
+                    // Set _recipeIngredients for later use (DB query)
+                    _recipeIngredients = inputtedIngredients;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 30.0,
+              ),
+              SizedBox(
+                width: 300.0,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                    labelText: 'Instructions',
+                  ),
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  validator: (inputtedInstructions) {
+                    if (inputtedInstructions == null || inputtedInstructions.isEmpty) {
+                      return 'Please enter the instructions for this recipe';
+                    }
+                    // Set _recipeInstructions for later use (DB query)
+                    _recipeInstructions = inputtedInstructions;
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(
+                height: 30.0,
+              ),
+              // NOTE: Still need to implement UI elements for an image picker
+              ElevatedButton(
+                child: const Text('Submit Recipe'),
+                onPressed: () async {
+                  // Validate and submit recipe form
+                  if (_formKey.currentState!.validate()) {
+                    // DB Connection Info
+                    final conn = await Connection.open(
+                        Endpoint(
+                          host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+                          database: 'food-bank-database',
+                          username: 'postgres',
+                          password: 'Aminifoodbank123',
+                        )
+                    );
+                    // Submit recipe under current user
+                    final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+                    final addRecipeCurrentUserResult = await conn.execute(
+                      Sql.named('INSERT INTO recipe VALUES (@username)'),
+                      parameters: {'username': currentUsername},
+                    );
+                  } else {
+                    // Display message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Error: Could not submit recipe.'))
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}*/
