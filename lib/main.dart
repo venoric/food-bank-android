@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:postgres/postgres.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -613,7 +614,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (context, index) => Divider(),
                     )
                   ],
-                )
+                ),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () {
+                    // Let user add their own recipe to the DB
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AddRecipeScreen(refreshRecipeList: _refreshRecipeList))
+                    );
+                  },
+                  child: Icon(Icons.add),
+                ),
             );
           } else {
             // Case: Recipe Data Still Being Fetched
@@ -627,6 +638,10 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
     );
+  }
+
+  void _refreshRecipeList() {
+    setState(() {});
   }
 }
 
@@ -648,7 +663,7 @@ class RecipeInformationScreen extends StatelessWidget {
             children: [
               // Display recipe name
               const Text('Recipe', style: TextStyle(decoration: TextDecoration.underline)),
-              Text(_currentRecipe._name),
+              Text(_currentRecipe._poster != 'N/A' ? ('${_currentRecipe._name} by ${_currentRecipe._poster}') : ('${_currentRecipe._name}')),
               const SizedBox(height: 10),
               // Display category
               const Text('Category', style: TextStyle(decoration: TextDecoration.underline)),
@@ -690,7 +705,7 @@ Future<List<Recipe>> fetchRecipes() async {
       )
   );
   // Get all recipe names and image URLs for display
-  final recipeFetchResult = await conn.execute('SELECT * FROM recipe');
+  final recipeFetchResult = await conn.execute('SELECT * FROM recipe ORDER BY id ASC');
   final recipeFetchResultList = recipeFetchResult.toList();
   if (recipeFetchResultList.isEmpty) {
     // Error Message
@@ -1037,10 +1052,11 @@ Future<List<Recipe>> fetchFavoriteRecipes() async {
   return favoriteRecipes;
 }
 
-/*
 // Add Own Recipe Screen
 class AddRecipeScreen extends StatefulWidget {
-  const AddRecipeScreen({super.key});
+  final Function() refreshRecipeList;
+
+  const AddRecipeScreen({super.key, required this.refreshRecipeList});
 
   @override
   State<AddRecipeScreen> createState() => _AddRecipeScreenState();
@@ -1051,6 +1067,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
   late String _recipeName, _recipeCategory, _recipeIngredients, _recipeInstructions;
   late int _recipeNumberServings;
+  // Temporary Image URL for User-Submitted Recipes
+  // Attribution:
+  // - RossPlaysAC, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons
+  final String _recipeImageURL = 'https://upload.wikimedia.org/wikipedia/commons/3/3b/PlaceholderRoss.png';
 
   @override
   Widget build(BuildContext context) {
@@ -1106,12 +1126,16 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Servings',
                   ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   validator: (inputtedServings) {
                     if (inputtedServings == null || inputtedServings.isEmpty) {
                       return 'Please enter the number of servings for this recipe';
                     }
                     // Set _recipeCategory for later use (DB query)
-                    _recipeNumberServings = inputtedServings;
+                    _recipeNumberServings = int.parse(inputtedServings);
                     return null;
                   },
                 ),
@@ -1176,12 +1200,20 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           password: 'Aminifoodbank123',
                         )
                     );
+                    // Determine 'id' for current recipe
+                    final getRecipesResult = await conn.execute('SELECT id FROM recipe');
+                    final getRecipesResultList = getRecipesResult.toList();
+                    final int idToSet = int.parse(getRecipesResultList.elementAt(getRecipesResultList.length - 1)[0]!.toString()) + 1;
                     // Submit recipe under current user
                     final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
                     final addRecipeCurrentUserResult = await conn.execute(
-                      Sql.named('INSERT INTO recipe VALUES (@username)'),
-                      parameters: {'username': currentUsername},
+                      Sql.named('INSERT INTO recipe VALUES (@id, @recipe_name, @recipe_ingredients, @recipe_instructions, @recipe_category, @recipe_servings, @image_url, @poster)'),
+                      parameters: {'id': idToSet, 'recipe_name': _recipeName, 'recipe_ingredients': _recipeIngredients, 'recipe_instructions': _recipeInstructions, 'recipe_category': _recipeCategory, 'recipe_servings': _recipeNumberServings, 'image_url': _recipeImageURL, 'poster': currentUsername},
                     );
+                    // Refresh recipe list
+                    widget.refreshRecipeList();
+                    // Exit to main menu
+                    Navigator.pop(context);
                   } else {
                     // Display message
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1196,4 +1228,4 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
       ),
     );
   }
-}*/
+}
