@@ -58,7 +58,7 @@ class RecipeInformationScreen extends StatelessWidget {
                           Text('* ${_currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
                           const SizedBox(height: 10),
                           // Display Three Suggested Recipes Based on Category
-                          const Text('Suggested Recipes', style: TextStyle(decoration: TextDecoration.underline)),  // Remove semi-colons, and add asterisks as bullet points
+                          Text(suggestedRecipes.isEmpty ? '' : 'Suggested Recipes', style: TextStyle(decoration: TextDecoration.underline)),  // Remove semi-colons, and add asterisks as bullet points
                           const SizedBox(height: 10),
                         ],
                       ),
