@@ -5,6 +5,7 @@ import 'package:postgres/postgres.dart';
 import 'add_recipe_screen.dart';
 import 'favorite_recipes_screen.dart';
 import 'landing_screen.dart';
+import 'posted_recipes_screen.dart';
 import 'recipe.dart';
 import 'recipe_information.dart';
 import 'secure_storage.dart';
@@ -22,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Recipe>> (
-        future: this._fetchRecipes(),
+        future: _fetchRecipes(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             // Case: Something went wrong with fetching recipe data from DB
@@ -50,6 +51,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+                                );
+                              },
+                            ),
+                            PopupMenuItem(
+                              child: const Text('My Posted Recipes'),
+                              onTap: () {
+                                // Navigate to the screen with my posted recipes
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => PostedRecipesScreen(refreshRecipeList: _refreshRecipeList)),
                                 );
                               },
                             ),

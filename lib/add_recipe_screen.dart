@@ -178,7 +178,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                                 Sql.named('INSERT INTO recipe VALUES (@id, @recipe_name, @recipe_ingredients, @recipe_instructions, @recipe_category, @recipe_servings, @image_url, @poster)'),
                                 parameters: {'id': idToSet, 'recipe_name': _recipeName, 'recipe_ingredients': _recipeIngredients, 'recipe_instructions': _recipeInstructions, 'recipe_category': _recipeCategory, 'recipe_servings': _recipeNumberServings, 'image_url': _recipeImageURL, 'poster': currentUsername},
                               );
-                              // Refresh recipe list
+                              // Refresh main screen's recipe list
                               widget.refreshRecipeList();
                               // Exit to main menu
                               Navigator.pop(context);

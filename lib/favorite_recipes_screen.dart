@@ -114,7 +114,7 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
     if (favoriteRecipesFetchResultList.isEmpty) {
       // Error Message
       Fluttertoast.showToast(
-          msg: 'No favorite recipes found.',
+          msg: 'You don\'t have any favorite recipes.',
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
