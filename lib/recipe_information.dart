@@ -23,15 +23,19 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late double _rating;
+  late double _averageRating;
   final int _starCount = 5;
 
   bool _ratingLoaded = false;
+  bool _averageRatingLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    // Fetch star rating for current recipe (if applicable)
+    // Fetch rating value for current recipe (if applicable)
     _fetchRating();
+    // Fetch average rating value for current recipe
+    _fetchAverageRating();
   }
 
   @override
@@ -49,7 +53,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
             return Scaffold(
               key: _formKey,
               appBar: AppBar(),
-              body: _ratingLoaded ? CustomScrollView(
+              body: (_ratingLoaded && _averageRatingLoaded) ? CustomScrollView(
                 slivers: <Widget>[
                   SliverToBoxAdapter(
                       child: Container(
@@ -59,7 +63,102 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                           children: [
                             // Display recipe name
                             const Text('Recipe', style: TextStyle(decoration: TextDecoration.underline)),
-                            Text(widget._currentRecipe.poster != 'N/A' ? ('${widget._currentRecipe.name} by ${widget._currentRecipe.poster}') : ('${widget._currentRecipe.name}')),
+                            Text(widget._currentRecipe.poster != 'N/A' ? ('${widget._currentRecipe.name} by ${widget._currentRecipe.poster}') : (widget._currentRecipe.name)),
+                            const SizedBox(height: 10),
+                            // Display rating bar
+                            Column(
+                              children: [
+                                const Text('Your Rating', style: TextStyle(decoration: TextDecoration.underline)),
+                                const SizedBox(height: 10),
+                                Center(
+                                    child: RatingBar.builder(
+                                      initialRating: _rating,
+                                      itemCount: _starCount,
+                                      allowHalfRating: true,
+                                      itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                      itemBuilder: (context, _) => const Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                      onRatingUpdate: (rating) async {
+                                        // Don't update the DB if the same rating is given to the current recipe
+                                        if (rating == _rating) {
+                                          return;
+                                        }
+                                        // Connect to DB to set rating value in DB
+                                        final conn = await Connection.open(
+                                            Endpoint(
+                                              host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+                                              database: 'food-bank-database',
+                                              username: 'postgres',
+                                              password: 'Aminifoodbank123',
+                                            )
+                                        );
+                                        // Fetch currently logged in user's username
+                                        final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+                                        // First check to see if the user already has a rating for the current recipe
+                                        final getRatingForCurrentRecipe = await conn.execute(
+                                          Sql.named('SELECT * FROM recipe_rating WHERE recipe_id = @recipeID AND username = @username'),
+                                          parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername},
+                                        );
+                                        final getRatingForCurrentRecipeList = getRatingForCurrentRecipe.toList();
+                                        if (getRatingForCurrentRecipeList.isEmpty) {
+                                          // Case: Current user has not rated the current recipe yet
+                                          // Now, add the recipe rating in the DB
+                                          final addRatingForCurrentRecipe = await conn.execute(
+                                              Sql.named('INSERT INTO recipe_rating VALUES (@recipeID, @username, @rating)'),
+                                              parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername, 'rating': rating}
+                                          );
+                                        } else {
+                                          // Case: Current user previously rated the current recipe
+                                          // Now, update rating to the DB again with new rating
+                                          final updateRatingForCurrentRecipe = await conn.execute(
+                                              Sql.named('UPDATE recipe_rating SET rating = @rating WHERE recipe_id = @recipeID AND username = @username'),
+                                              parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername, 'rating': rating}
+                                          );
+                                        }
+                                        // Check once more if DB table add/update was successful
+                                        final getRatingForCurrentRecipeAgain = await conn.execute(
+                                          Sql.named('SELECT * FROM recipe_rating WHERE recipe_id = @recipeID AND username = @username'),
+                                          parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername},
+                                        );
+                                        final getRatingForCurrentRecipeAgainList = getRatingForCurrentRecipeAgain.toList();
+                                        // Close connection to DB
+                                        await conn.close();
+                                        // Display toast message depending on result of rating attempt
+                                        if (getRatingForCurrentRecipeAgainList.length == 1) {
+                                          // Case: Successful Rating
+                                          Fluttertoast.showToast(
+                                              msg: 'Rated the current recipe successfully with a $rating/${_starCount.toDouble()}!',
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              timeInSecForIosWeb: 1,
+                                              backgroundColor: Colors.grey,
+                                              textColor: Colors.black
+                                          );
+                                        } else {
+                                          // Case: Unsuccessful Rating
+                                          Fluttertoast.showToast(
+                                              msg: 'Could not rate the current recipe.',
+                                              toastLength: Toast.LENGTH_SHORT,
+                                              gravity: ToastGravity.BOTTOM,
+                                              timeInSecForIosWeb: 1,
+                                              backgroundColor: Colors.grey,
+                                              textColor: Colors.black
+                                          );
+                                        }
+                                        // Set local rating value
+                                        setState(() {
+                                          _rating = rating;
+                                        });
+                                      },
+                                    )
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            // Display average rating for current recipe
+                            Text('(Average Rating: $_averageRating/${_starCount.toDouble()})'),
                             const SizedBox(height: 10),
                             // Display category
                             const Text('Category', style: TextStyle(decoration: TextDecoration.underline)),
@@ -105,99 +204,6 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                     },
                     separatorBuilder: (context, index) => Divider(),
                   ),
-                  // Star-Based Review Section
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        const Text('Your Rating for This Recipe', style: TextStyle(decoration: TextDecoration.underline)),
-                        const SizedBox(height: 10),
-                        Center(
-                            child: RatingBar.builder(
-                              initialRating: _rating,
-                              itemCount: _starCount,
-                              allowHalfRating: true,
-                              itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                              itemBuilder: (context, _) => const Icon(
-                                Icons.star,
-                                color: Colors.amber,
-                              ),
-                              onRatingUpdate: (rating) async {
-                                // Don't update the DB if the same rating is given to the current recipe
-                                if (rating == _rating) {
-                                  return;
-                                }
-                                // Connect to DB to set rating value in DB
-                                final conn = await Connection.open(
-                                    Endpoint(
-                                      host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
-                                      database: 'food-bank-database',
-                                      username: 'postgres',
-                                      password: 'Aminifoodbank123',
-                                    )
-                                );
-                                // Fetch currently logged in user's username
-                                final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
-                                // First check to see if the user already has a rating for the current recipe
-                                final getRatingForCurrentRecipe = await conn.execute(
-                                  Sql.named('SELECT * FROM recipe_rating WHERE recipe_id = @recipeID AND username = @username'),
-                                  parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername},
-                                );
-                                final getRatingForCurrentRecipeList = getRatingForCurrentRecipe.toList();
-                                if (getRatingForCurrentRecipeList.isEmpty) {
-                                  // Case: Current user has not rated the current recipe yet
-                                  // Now, add the recipe rating in the DB
-                                  final addRatingForCurrentRecipe = await conn.execute(
-                                      Sql.named('INSERT INTO recipe_rating VALUES (@recipeID, @username, @rating)'),
-                                      parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername, 'rating': rating}
-                                  );
-                                } else {
-                                  // Case: Current user previously rated the current recipe
-                                  // Now, update rating to the DB again with new rating
-                                  final updateRatingForCurrentRecipe = await conn.execute(
-                                      Sql.named('UPDATE recipe_rating SET rating = @rating WHERE recipe_id = @recipeID AND username = @username'),
-                                      parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername, 'rating': rating}
-                                  );
-                                }
-                                // Check once more if DB table add/update was successful
-                                final getRatingForCurrentRecipeAgain = await conn.execute(
-                                  Sql.named('SELECT * FROM recipe_rating WHERE recipe_id = @recipeID AND username = @username'),
-                                  parameters: {'recipeID': widget._currentRecipe.recipeID, 'username': currentUsername},
-                                );
-                                final getRatingForCurrentRecipeAgainList = getRatingForCurrentRecipeAgain.toList();
-                                // Close connection to DB
-                                await conn.close();
-                                // Display toast message depending on result of rating attempt
-                                if (getRatingForCurrentRecipeAgainList.length == 1) {
-                                  // Case: Successful Rating
-                                  Fluttertoast.showToast(
-                                      msg: 'Rated the current recipe successfully with a $rating/${_starCount.toDouble()}!',
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      timeInSecForIosWeb: 1,
-                                      backgroundColor: Colors.grey,
-                                      textColor: Colors.black
-                                  );
-                                } else {
-                                  // Case: Unsuccessful Rating
-                                  Fluttertoast.showToast(
-                                      msg: 'Could not rate the current recipe.',
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      timeInSecForIosWeb: 1,
-                                      backgroundColor: Colors.grey,
-                                      textColor: Colors.black
-                                  );
-                                }
-                                // Set local rating value
-                                setState(() {
-                                  _rating = rating;
-                                });
-                              },
-                            )
-                        )
-                      ],
-                    ),
-                  )
                   // Comment Section
                 ],
               ) : Container(
@@ -305,8 +311,40 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
     }
     // Close connection to DB
     await conn.close();
+    // Now, variable for rating for current recipe by current user has been set
     setState(() {
       _ratingLoaded = true;
+    });
+  }
+
+  // Method to Get Average Rating Value
+  Future<void> _fetchAverageRating() async {
+    // Connect to DB to fetch average rating value for current recipe
+    final conn = await Connection.open(
+        Endpoint(
+          host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+          database: 'food-bank-database',
+          username: 'postgres',
+          password: 'Aminifoodbank123',
+        )
+    );
+    // Get recipe rating
+    final fetchRatingForCurrentRecipe = await conn.execute(
+      Sql.named('SELECT AVG(rating) AS average_rating FROM recipe_rating WHERE recipe_id = @reviewID'),
+      parameters: {'reviewID': widget._currentRecipe.recipeID},
+    );
+    final fetchRatingForCurrentRecipeList = fetchRatingForCurrentRecipe.toList();
+    // Set local average rating value
+    if (fetchRatingForCurrentRecipeList.isNotEmpty && fetchRatingForCurrentRecipeList[0][0].runtimeType != Null) {
+      _averageRating = fetchRatingForCurrentRecipeList[0][0] as double;
+    } else {
+      _averageRating = 0.0;
+    }
+    // Close connection to DB
+    await conn.close();
+    // Now, variable for average rating has been set
+    setState(() {
+      _averageRatingLoaded = true;
     });
   }
 }
