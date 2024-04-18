@@ -109,7 +109,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                   SliverToBoxAdapter(
                     child: Column(
                       children: [
-                        const Text('Your Rating', style: TextStyle(decoration: TextDecoration.underline)),
+                        const Text('Your Rating for This Recipe', style: TextStyle(decoration: TextDecoration.underline)),
                         const SizedBox(height: 10),
                         Center(
                             child: RatingBar.builder(
@@ -170,7 +170,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                                 if (getRatingForCurrentRecipeAgainList.length == 1) {
                                   // Case: Successful Rating
                                   Fluttertoast.showToast(
-                                      msg: 'Rated the current recipe successfully!',
+                                      msg: 'Rated the current recipe successfully with a $rating/${_starCount.toDouble()}!',
                                       toastLength: Toast.LENGTH_SHORT,
                                       gravity: ToastGravity.BOTTOM,
                                       timeInSecForIosWeb: 1,
