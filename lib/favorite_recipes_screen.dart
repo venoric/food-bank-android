@@ -63,6 +63,8 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                                 Sql.named('DELETE FROM user_favorite WHERE username = @username AND recipe_id = @recipe_id'),
                                 parameters: {'username': currentUsername, 'recipe_id': favoriteRecipes.elementAt(index).recipeID},
                               );
+                              // Close connection to DB
+                              await conn.close();
                               // Remove favorite recipe from local list
                               favoriteRecipes.removeAt(index);
                               // Refresh state
@@ -111,6 +113,8 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
       parameters: {'username': currentUsername},
     );
     final favoriteRecipesFetchResultList = favoriteRecipesFetchResult.toList();
+    // Close connection to DB
+    await conn.close();
     if (favoriteRecipesFetchResultList.isEmpty) {
       // Error Message
       Fluttertoast.showToast(

@@ -209,6 +209,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             parameters: {'username': _username, 'password': _password, 'firstName': _firstName, 'lastName': _lastName, 'email': _email},
                           );
                           final accountExistsNowResultList = accountExistsNowResult.toList();
+                          // Close connection to DB
+                          await conn.close();
                           if (accountExistsNowResultList.isNotEmpty) {
                             // Case: Account now exists in the DB
                             // Display message

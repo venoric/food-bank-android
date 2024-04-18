@@ -84,6 +84,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       Sql.named('DELETE FROM user_allergy WHERE username = @username AND allergy = @allergy'),
                                       parameters: {'username': currentUser.username, 'allergy': allergy},
                                     );
+                                    // Close connection to DB
+                                    await conn.close();
                                     // Refresh state
                                     setState(() {});
                                   },
@@ -114,6 +116,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             Sql.named('INSERT INTO user_allergy VALUES (@username, @allergy)'),
                             parameters: {'username': currentUser.username, 'allergy': value},
                           );
+                          // Close connection to DB
+                          await conn.close();
                           // Refresh state
                           setState(() {});
                         } else {
@@ -176,6 +180,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       Sql.named('SELECT * FROM user_allergy WHERE username = @username'),
       parameters: {'username': currentUsername},
     );
+    // Close connection to DB
+    await conn.close();
     // Create variable of type 'UserProfile' with the fetched data
     late UserProfile currentUserProfile = UserProfile(fetchedUsername, fetchedFirstName, fetchedLastName, fetchedEmail);
     int numberOfAllergies = userAllergiesFetchResult.length;

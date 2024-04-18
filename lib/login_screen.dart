@@ -87,6 +87,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       parameters: {'username': _username, 'password': _password},
                     );
                     final validAccountResultList = validAccountResult.toList();
+                    // Close connection to DB
+                    await conn.close();
                     // Check DB for matching username and password
                     if (validAccountResultList.isNotEmpty) {
                       // Case: Found an account with the provided credentials

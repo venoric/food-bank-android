@@ -151,6 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get all recipe names and image URLs for display
     final recipeFetchResult = await conn.execute('SELECT * FROM recipe ORDER BY id ASC');
     final recipeFetchResultList = recipeFetchResult.toList();
+    // Close connection to DB
+    await conn.close();
     if (recipeFetchResultList.isEmpty) {
       // Error Message
       Fluttertoast.showToast(

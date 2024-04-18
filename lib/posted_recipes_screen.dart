@@ -70,6 +70,8 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
                                 Sql.named('DELETE FROM recipe WHERE poster = @username AND id = @recipe_id'),
                                 parameters: {'username': currentUsername, 'recipe_id': postedRecipes.elementAt(index).recipeID},
                               );
+                              // Close connection to DB
+                              await conn.close();
                               // Remove posted recipe from local list
                               postedRecipes.removeAt(index);
                               // Refresh main screen's recipe list
@@ -120,6 +122,8 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
       parameters: {'poster': currentUsername},
     );
     final recipeFetchResultList = recipeFetchResult.toList();
+    // Close connection to DB
+    await conn.close();
     if (recipeFetchResultList.isEmpty) {
       // Error Message
       Fluttertoast.showToast(
