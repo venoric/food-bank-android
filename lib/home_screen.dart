@@ -51,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (context) => const UserProfileScreen()),
-                                );
+                                ).then((value) => setState(() {
+                                  _fetchRecipes();
+                                }));
                               },
                             ),
                             PopupMenuItem(
@@ -139,6 +141,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // Method to Fetch Recipes from DB
   Future<List<Recipe>> _fetchRecipes() async {
     late List<Recipe> recipes = <Recipe>[];
+    // Fetch currently logged in user's username
+    final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
     // Connect to DB to fetch recipes
     final conn = await Connection.open(
         Endpoint(
@@ -148,8 +152,25 @@ class _HomeScreenState extends State<HomeScreen> {
           password: 'Aminifoodbank123',
         )
     );
-    // Get all recipe names and image URLs for display
-    final recipeFetchResult = await conn.execute('SELECT * FROM recipe ORDER BY id ASC');
+    // Get all recipe names and image URLs for display (in ascending alphabetical order)
+    // (except for those that contain ingredients the user is allergic to - set in the 'User Profile' screen)
+    final recipeFetchResult = await conn.execute(
+        Sql.named(
+            '''
+            SELECT * FROM recipe
+            WHERE recipe.id NOT IN (
+              SELECT recipe_allergy.recipe_id
+              FROM recipe_allergy
+              WHERE recipe_allergy.allergy IN (
+                SELECT user_allergy.allergy
+                FROM user_allergy
+                WHERE user_allergy.username = @username
+              )
+            )
+            '''
+        ),
+        parameters: {'username': currentUsername}
+    );
     final recipeFetchResultList = recipeFetchResult.toList();
     // Close connection to DB
     await conn.close();

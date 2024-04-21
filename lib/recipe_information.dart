@@ -230,6 +230,8 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
   // Method to Fetch Three Suggested Recipes
   Future<List<Recipe>> _fetchSuggestedRecipes() async {
     late List<Recipe> suggestedRecipes = <Recipe>[];
+    // Fetch currently logged in user's username
+    final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
     // Connect to DB to fetch suggested recipes
     final conn = await Connection.open(
         Endpoint(
@@ -239,10 +241,23 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
           password: 'Aminifoodbank123',
         )
     );
-    // Get all recipes under the same category
+    // Get all recipes under the same category (except for those that contain ingredients the user is allergic to - set in the 'User Profile' screen)
     final fetchSuggestedRecipes = await conn.execute(
-      Sql.named('SELECT * FROM recipe WHERE category = @category'),
-      parameters: {'category': widget._currentRecipe.category},
+      Sql.named(
+          '''
+          SELECT * FROM recipe
+          WHERE recipe.id NOT IN (
+            SELECT recipe_allergy.recipe_id
+            FROM recipe_allergy
+            WHERE recipe_allergy.allergy IN (
+              SELECT user_allergy.allergy
+              FROM user_allergy
+              WHERE user_allergy.username = @username
+            )
+          ) AND category = @category
+          '''
+      ),
+      parameters: {'username': currentUsername, 'category': widget._currentRecipe.category}
     );
     final fetchSuggestedRecipesList = fetchSuggestedRecipes.toList();
     // Close connection to DB

@@ -13,7 +13,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  final List<String> allergyList = <String>['dairy', 'eggs', 'fish', 'peanuts', 'wheat'];
+  final List<String> allergyList = <String>['dairy', 'egg', 'peanut', 'tree nut', 'soy', 'wheat/gluten', 'fish', 'shellfish', 'sesame'];
   String? selectedAllergy;
   @override
   Widget build(BuildContext context) {
