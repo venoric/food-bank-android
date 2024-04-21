@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       return ListTile(
                         title: Text(recipes.elementAt(index).name),
-                        leading: Image.network(recipes.elementAt(index).imageURL),
+                        leading: Image.network(recipes.elementAt(index).imageURL, height: 100.0, width: 100.0), // Align images
                         onTap: () {
                           // Go to screen for selected recipe and pass over the chosen recipe's Recipe instance as well
                           Navigator.push(
