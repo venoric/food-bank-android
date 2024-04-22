@@ -9,6 +9,7 @@ import 'posted_recipes_screen.dart';
 import 'recipe.dart';
 import 'recipe_information.dart';
 import 'secure_storage.dart';
+import 'select_recipe_categories_screen.dart';
 import 'user_profile_screen.dart';
 
 // Home Screen
@@ -113,15 +114,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 ],
               ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                  // Let user add their own recipe to the DB
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AddRecipeScreen(refreshRecipeList: _refreshRecipeList))
-                  );
-                },
-                child: Icon(Icons.add),
+              floatingActionButton: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Floating Action Button for Adding Recipe
+                  FloatingActionButton(
+                    onPressed: () {
+                      // Let user add their own recipe to the DB
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AddRecipeScreen(refreshRecipeList: _refreshRecipeList))
+                      );
+                    },
+                    child: const Icon(Icons.add),
+                  ),
+                  const SizedBox(
+                    height: 30.0,
+                  ),
+                  // Floating Action Button for Filtering Recipes on Home Screen Based on Category
+                  FloatingActionButton(
+                    onPressed: () {
+                      // Let user select filters for the available recipe categories
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SelectRecipeCategoriesScreen(refreshRecipeList: _refreshRecipeList)),
+                      );
+                    },
+                    child: const Icon(Icons.filter_list),
+                  ),
+                ],
               ),
             );
           } else {
@@ -154,8 +175,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     // Get all recipe names and image URLs for display (in ascending alphabetical order)
     // (except for those that contain ingredients the user is allergic to - set in the 'User Profile' screen)
-    final recipeFetchResult = await conn.execute(
-        Sql.named(
+    final recipeFetchResult;
+    // Change SQL query to only show recipes that belong to categories the user selected (if applicable)
+    final storedSelectedCategories = await SecureStorage().retrieveSelectedRecipeCategories();
+    if (storedSelectedCategories.isNotEmpty) {
+      // Case: User selected recipe categories
+      recipeFetchResult = await conn.execute(
+          Sql.named(
+              '''
+            SELECT * FROM recipe
+            WHERE recipe.id NOT IN (
+              SELECT recipe_allergy.recipe_id
+              FROM recipe_allergy
+              WHERE recipe_allergy.allergy IN (
+                SELECT user_allergy.allergy
+                FROM user_allergy
+                WHERE user_allergy.username = @username
+              )
+            ) AND category = ANY(@categories)
+            ORDER BY recipe.name ASC 
+            '''
+          ),
+          parameters: {'username': currentUsername, 'categories': storedSelectedCategories},
+      );
+    } else {
+      // Case: User did not select recipe categories
+      recipeFetchResult = await conn.execute(
+          Sql.named(
             '''
             SELECT * FROM recipe
             WHERE recipe.id NOT IN (
@@ -167,10 +213,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 WHERE user_allergy.username = @username
               )
             )
+            ORDER BY recipe.name ASC 
             '''
-        ),
-        parameters: {'username': currentUsername}
-    );
+          ),
+          parameters: {'username': currentUsername}
+      );
+    }
     final recipeFetchResultList = recipeFetchResult.toList();
     // Close connection to DB
     await conn.close();
