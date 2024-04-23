@@ -5,6 +5,7 @@ import 'package:postgres/postgres.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import 'recipe.dart';
+import 'recipe_comments_screen.dart';
 import 'secure_storage.dart';
 
 // Recipe Information Screen
@@ -190,21 +191,45 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                   SliverList.separated(
                     itemCount: suggestedRecipes.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(suggestedRecipes.elementAt(index).name),
-                        leading: Image.network(suggestedRecipes.elementAt(index).imageURL),
-                        onTap: () {
-                          // Go to screen for suggested recipe and pass over the chosen recipe's Recipe instance as well
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => RecipeInformationScreen(suggestedRecipes.elementAt(index))),
-                          );
-                        },
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Text(suggestedRecipes.elementAt(index).name),
+                            leading: Image.network(suggestedRecipes.elementAt(index).imageURL),
+                            onTap: () {
+                              // Go to screen for suggested recipe and pass over the chosen recipe's Recipe instance as well
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => RecipeInformationScreen(suggestedRecipes.elementAt(index))),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                       );
                     },
                     separatorBuilder: (context, index) => Divider(),
                   ),
-                  // Comment Section
+                  // Button That Leads to Current Recipe's Comment Section
+                  SliverToBoxAdapter(
+                    child: Center(
+                      child: Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              // Navigate to current recipe's comment section
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => RecipeCommentsScreen(currentRecipeID: widget._currentRecipe.recipeID)),
+                              );
+                            },
+                            child: const Text('Go to Comments'),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      )
+                    ),
+                  ),
                 ],
               ) : Container(
                 color: Colors.white,

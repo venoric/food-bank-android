@@ -7,7 +7,7 @@ import 'favorite_recipes_screen.dart';
 import 'landing_screen.dart';
 import 'posted_recipes_screen.dart';
 import 'recipe.dart';
-import 'recipe_information.dart';
+import 'recipe_information_screen.dart';
 import 'secure_storage.dart';
 import 'select_recipe_categories_screen.dart';
 import 'user_profile_screen.dart';
