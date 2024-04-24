@@ -29,6 +29,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  const SizedBox(
+                    height: 20.0,
+                  ),
                   SizedBox(
                     width: 300.0,
                     child: TextFormField(
@@ -64,6 +67,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return null;
                       },
                     ),
+                  ),
+                  const SizedBox(
+                    height: 10.0,
                   ),
                   SizedBox(
                     width: 300.0,

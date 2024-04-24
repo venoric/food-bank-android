@@ -37,6 +37,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 20),
                     // Display username
                     const Text('Username', style: TextStyle(decoration: TextDecoration.underline)),
                     Text(currentUser.username),

@@ -81,7 +81,7 @@ class _RecipeCommentsScreenState extends State<RecipeCommentsScreen> {
               },
               formKey: formKey,
               commentController: commentController,
-              backgroundColor: Colors.lightGreen,
+              backgroundColor: Colors.green,
               textColor: Colors.white,
               sendWidget: Icon(Icons.send_sharp, size: 30, color: Colors.white),
             ),
