@@ -33,6 +33,9 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                     const SliverAppBar(
                       title: Text('Favorite Recipes'),
                     ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 10),
+                    ),
                     SliverList.separated(
                       itemCount: favoriteRecipes.length,
                       itemBuilder: (context, index) {

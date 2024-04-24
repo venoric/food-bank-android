@@ -35,6 +35,9 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
                     const SliverAppBar(
                       title: Text('Posted Recipes'),
                     ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 10),
+                    ),
                     SliverList.separated(
                       itemCount: postedRecipes.length,
                       itemBuilder: (context, index) {

@@ -95,6 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     ],
                   ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 10),
+                  ),
                   SliverList.separated(
                     itemCount: recipes.length,
                     itemBuilder: (context, index) {
@@ -175,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     // Get all recipe names and image URLs for display (in ascending alphabetical order)
     // (except for those that contain ingredients the user is allergic to - set in the 'User Profile' screen)
-    final recipeFetchResult;
+    final dynamic recipeFetchResult;
     // Change SQL query to only show recipes that belong to categories the user selected (if applicable)
     final storedSelectedCategories = await SecureStorage().retrieveSelectedRecipeCategories();
     if (storedSelectedCategories.isNotEmpty) {
