@@ -29,7 +29,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Recipe Categories to Show'),
+        title: const Text('Select Recipe Categories'),
       ),
       body: FutureBuilder<List<String>>(
         future: _fetchCategories(),
@@ -121,5 +121,6 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
   // Method to Fetch All Selected Recipe Categories from SecureStorage
   void _fetchSelectedRecipeCategories() async {
     _selectedCategories = await SecureStorage().retrieveSelectedRecipeCategories();
+    print(_selectedCategories); // DEBUG
   }
 }
