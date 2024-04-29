@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:postgres/postgres.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:youtube_data_api/models/video.dart';
+import 'package:youtube_data_api/youtube_data_api.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'recipe.dart';
 import 'recipe_comments_screen.dart';
@@ -23,9 +26,13 @@ class RecipeInformationScreen extends StatefulWidget {
 class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
   final _formKey = GlobalKey<FormState>();
 
+  final YoutubeDataApi youtubeDataApi = new YoutubeDataApi();
+  final String apiKey = '';
+
   late double _rating;
   late double _averageRating;
   final int _starCount = 5;
+  List<Video> _relatedVideos = [];
 
   bool _ratingLoaded = false;
   bool _averageRatingLoaded = false;
@@ -37,6 +44,8 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
     _fetchRating();
     // Fetch average rating value for current recipe
     _fetchAverageRating();
+    // Fetch three YouTube videos that are related to current recipe
+    _fetchRecipeVideos('${widget._currentRecipe.name} recipe');
   }
 
   @override
@@ -85,14 +94,47 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                             const Text('Instructions', style: TextStyle(decoration: TextDecoration.underline)),
                             Text('* ${widget._currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
                             const SizedBox(height: 10),
-                            // Display Three Suggested Recipes Based on Category
-                            Text(suggestedRecipes.isEmpty ? '' : 'Suggested Recipes', style: TextStyle(decoration: TextDecoration.underline)),  // Remove semi-colons, and add asterisks as bullet points
-                            const SizedBox(height: 10),
                           ],
                         ),
                       )
                   ),
+                  // Related YouTube Videos Section
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Text(suggestedRecipes.isEmpty ? '' : 'Related YouTube Videos', style: const TextStyle(decoration: TextDecoration.underline)),  // Remove semi-colons, and add asterisks as bullet points
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                  SliverList.separated(
+                    itemCount: _relatedVideos.length,
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Text(_relatedVideos.elementAt(index).title as String),
+                            leading: Image.network(_relatedVideos.elementAt(index).thumbnails?.elementAt(0).url as String),
+                            onTap: () {
+                              // Open link to related YouTube video
+                              launchUrl(Uri.parse('https://www.youtube.com/watch?v=${_relatedVideos.elementAt(index).videoId}'));
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      );
+                    },
+                    separatorBuilder: (context, index) => Divider(),
+                  ),
                   // Suggested Recipes Section (Based on Current Recipe Category)
+                  SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        Text(suggestedRecipes.isEmpty ? '' : 'Suggested Recipes', style: const TextStyle(decoration: TextDecoration.underline)),  // Remove semi-colons, and add asterisks as bullet points
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
                   SliverList.separated(
                     itemCount: suggestedRecipes.length,
                     itemBuilder: (context, index) {
@@ -213,7 +255,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                           ),
                           const SizedBox(height: 10),
                           // Display average rating for current recipe
-                          Text('(Average Rating: $_averageRating/${_starCount.toDouble()})'),
+                          Text('(Average Rating: ${_averageRating.toStringAsFixed(2)}/${_starCount.toDouble()})'),
                           const SizedBox(height: 10),
                           // Button That Leads to Current Recipe's Comment Section
                           ElevatedButton(
@@ -387,5 +429,21 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
     setState(() {
       _averageRatingLoaded = true;
     });
+  }
+
+  // Method to Get Three Videos Related to the Current Recipe
+  void _fetchRecipeVideos(String query) async {
+    List results = await youtubeDataApi.fetchSearchVideo(query, apiKey);
+    // Only get three videos
+    int videoCounter = 0;
+    for (var i = 0; i < results.length && videoCounter < 3; ++i) {
+      // Only grab videos
+      if (results.elementAt(i) is Video) {
+        // Add video to '_relatedVideos'
+        _relatedVideos.add(results.elementAt(i));
+        // Increment 'videoCounter'
+        videoCounter++;
+      }
+    }
   }
 }
