@@ -72,8 +72,12 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                           // Actual Recipe Information Section
                           children: [
                             // Display recipe name
-                            const Text('Recipe', style: TextStyle(decoration: TextDecoration.underline)),
-                            Text(widget._currentRecipe.poster != 'N/A' ? ('${widget._currentRecipe.name} by ${widget._currentRecipe.poster}') : (widget._currentRecipe.name)),
+                            Text(widget._currentRecipe.poster != 'N/A' ? ('${widget._currentRecipe.name} by ${widget._currentRecipe.poster}') : (widget._currentRecipe.name),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 30.0,
+                                )
+                            ),
                             const SizedBox(height: 10),
                             // Display category
                             const Text('Category', style: TextStyle(decoration: TextDecoration.underline)),
@@ -88,11 +92,27 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                             const SizedBox(height: 10),
                             // Display ingredient list
                             const Text('Ingredients', style: TextStyle(decoration: TextDecoration.underline)),
-                            Text('* ${widget._currentRecipe.ingredients.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
+                            const SizedBox(height: 10),
+                            Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(10),// Set the background color to grey
+                                ),
+                                padding: EdgeInsets.all(8.0), // Add some padding around the text
+                                child: Text('* ${widget._currentRecipe.ingredients.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
+                            ),
                             const SizedBox(height: 10),
                             // Display instructions
                             const Text('Instructions', style: TextStyle(decoration: TextDecoration.underline)),
-                            Text('* ${widget._currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
+                            const SizedBox(height: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(10),// Set the background color to grey
+                              ),
+                              padding: EdgeInsets.all(8.0), // Add some padding around the text
+                              child: Text('* ${widget._currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points// Remove semi-colons, and add asterisks as bullet points
+                            ),
                             const SizedBox(height: 10),
                           ],
                         ),
