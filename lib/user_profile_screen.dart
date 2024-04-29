@@ -104,7 +104,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         if (value != null && !currentUser.userAllergies.contains(value)) {
                           // Add new allergy to user profile
                           currentUser.userAllergies.add(value);
-                          // Add row with new allergy to user_allergy for this user
+                          // Add row with new allergy to the 'user_allergy' DB table for this user
                           final conn = await Connection.open(
                               Endpoint(
                                 host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
@@ -186,7 +186,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     // Create variable of type 'UserProfile' with the fetched data
     late UserProfile currentUserProfile = UserProfile(fetchedUsername, fetchedFirstName, fetchedLastName, fetchedEmail);
     int numberOfAllergies = userAllergiesFetchResult.length;
-    // Now, add this user's allergies to the UserProfile variable
+    // Now, add this user's allergies to the 'UserProfile' variable
     for (int i = 0; i < numberOfAllergies; ++i) {
       // Add current allergy
       final String currentAllergy = userAllergiesFetchResult[i][1].toString();

@@ -21,7 +21,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
   @override
   void initState() {
     super.initState();
-    // Fetch selected recipe categories from SecureStorage
+    // Fetch selected recipe categories from 'SecureStorage'
     _fetchSelectedRecipeCategories();
   }
 
@@ -39,7 +39,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.hasData) {
             // Case: Recipe category data fetching from DB successful
-            // Populate allRecipeCategories
+            // Populate 'allRecipeCategories'
             final allRecipeCategories = snapshot.data!;
             // Display list of checkboxes, one per recipe category
             return ListView.builder(
@@ -56,7 +56,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
                       } else {
                         _selectedCategories.remove(category);
                       }
-                      // Remove empty strings from _selectedCategories
+                      // Remove empty strings from '_selectedCategories'
                       _selectedCategories = _selectedCategories.where((item) => item.isNotEmpty).toList();
                     });
                   },
@@ -118,9 +118,8 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
     return categories;
   }
 
-  // Method to Fetch All Selected Recipe Categories from SecureStorage
+  // Method to Fetch All Selected Recipe Categories from 'SecureStorage'
   void _fetchSelectedRecipeCategories() async {
     _selectedCategories = await SecureStorage().retrieveSelectedRecipeCategories();
-    print(_selectedCategories); // DEBUG
   }
 }

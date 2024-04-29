@@ -33,9 +33,11 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
   late double _averageRating;
   final int _starCount = 5;
   List<Video> _relatedVideos = [];
+  late bool _isFavorite;
 
   bool _ratingLoaded = false;
   bool _averageRatingLoaded = false;
+  bool _currentFavoriteStatusLoaded = false;
 
   @override
   void initState() {
@@ -46,6 +48,8 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
     _fetchAverageRating();
     // Fetch three YouTube videos that are related to current recipe
     _fetchRecipeVideos('${widget._currentRecipe.name} recipe');
+    // Fetch favorite status for current user and current recipe
+    _fetchFavoriteStatus();
   }
 
   @override
@@ -60,10 +64,17 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
             // Case: Recipe data DB fetching successful
             // Get suggested recipes from DB
             List<Recipe> suggestedRecipes = snapshot.data!;
-            return Scaffold(
+            return (_ratingLoaded && _averageRatingLoaded && _currentFavoriteStatusLoaded) ? Scaffold(
               key: _formKey,
-              appBar: AppBar(),
-              body: (_ratingLoaded && _averageRatingLoaded) ? CustomScrollView(
+              appBar: AppBar(
+                actions: [
+                  IconButton(
+                    icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border),
+                    onPressed: _setNewFavoriteStatus,
+                  )
+                ],
+              ),
+              body: CustomScrollView(
                 slivers: <Widget>[
                   SliverToBoxAdapter(
                       child: Container(
@@ -96,7 +107,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                             Container(
                                 decoration: BoxDecoration(
                                   color: Colors.grey[100],
-                                  borderRadius: BorderRadius.circular(10),// Set the background color to grey
+                                  borderRadius: BorderRadius.circular(10),  // Set the background color to grey
                                 ),
                                 padding: EdgeInsets.all(8.0), // Add some padding around the text
                                 child: Text('* ${widget._currentRecipe.ingredients.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
@@ -108,10 +119,10 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(10),// Set the background color to grey
+                                borderRadius: BorderRadius.circular(10),  // Set the background color to grey
                               ),
                               padding: EdgeInsets.all(8.0), // Add some padding around the text
-                              child: Text('* ${widget._currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points// Remove semi-colons, and add asterisks as bullet points
+                              child: Text('* ${widget._currentRecipe.instructions.replaceAll(r'\r\n', '\n* ').replaceAll(';', '')}'),  // Remove semi-colons, and add asterisks as bullet points
                             ),
                             const SizedBox(height: 10),
                           ],
@@ -164,7 +175,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                             title: Text(suggestedRecipes.elementAt(index).name),
                             leading: Image.network(suggestedRecipes.elementAt(index).imageURL),
                             onTap: () {
-                              // Go to screen for suggested recipe and pass over the chosen recipe's Recipe instance as well
+                              // Go to screen for suggested recipe and pass over the chosen recipe's 'Recipe' instance as well
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => RecipeInformationScreen(suggestedRecipes.elementAt(index))),
@@ -294,11 +305,11 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                     ),
                   ),
                 ],
-              ) : Container(
-                color: Colors.white,
-                child: const Center(
-                    child: CircularProgressIndicator()
-                ),
+              ),
+            ) : Container(
+              color: Colors.white,
+              child: const Center(
+                  child: CircularProgressIndicator()
               ),
             );
           } else {
@@ -465,5 +476,126 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
         videoCounter++;
       }
     }
+  }
+
+  // Method to Get Favorite Status from DB
+  void _fetchFavoriteStatus() async {
+    // Connect to DB to fetch favorite status from DB for current user and current recipe
+    final conn = await Connection.open(
+        Endpoint(
+          host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+          database: 'food-bank-database',
+          username: 'postgres',
+          password: 'Aminifoodbank123',
+        )
+    );
+    // Fetch currently logged in user's username
+    final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+    // Check DB to see if current user has favorited current recipe
+    final fetchFavoriteStatusDBResult = await conn.execute(
+      Sql.named('SELECT * FROM user_favorite WHERE username = @username AND recipe_id = @recipeID'),
+      parameters: {'username': currentUsername, 'recipeID': widget._currentRecipe.recipeID}
+    );
+    final fetchFavoriteStatusDBResultList = fetchFavoriteStatusDBResult.toList();
+    if (fetchFavoriteStatusDBResultList.isNotEmpty) {
+      // Case: User favorited current recipe previously
+      _isFavorite = true;
+    } else {
+      // Case: User did not favorite current recipe previously
+      _isFavorite = false;
+    }
+    // Set '_currentFavoriteStatusLoaded' to true
+    _currentFavoriteStatusLoaded = true;
+    // Close connection to DB
+    await conn.close();
+  }
+
+  // Method to Set New Favorite Status
+  void _setNewFavoriteStatus() async {
+    // Get new current favorite status using '_isFavorite'
+    final newFavoriteStatus = !_isFavorite;
+    // Connect to DB to set new favorite status in DB for current user and current recipe
+    final conn = await Connection.open(
+        Endpoint(
+          host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
+          database: 'food-bank-database',
+          username: 'postgres',
+          password: 'Aminifoodbank123',
+        )
+    );
+    // Fetch currently logged in user's username
+    final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
+    // Add new DB table entry for 'user_favorite' table or remove existing entry depending on _isFavorite
+    if (_isFavorite) {
+      // Case: DB entry exists in DB
+      // Delete table entry
+      await conn.execute(
+          Sql.named('DELETE FROM user_favorite WHERE username = @username AND recipe_id = @recipeID'),
+          parameters: {'username': currentUsername, 'recipeID': widget._currentRecipe.recipeID}
+      );
+      // Check if entry has been successfully deleted
+      final checkForFavoriteStatusDBResult = await conn.execute(
+        Sql.named('SELECT * FROM user_favorite WHERE username = @username AND recipe_id = @recipeID'),
+        parameters: {'username': currentUsername, 'recipeID': widget._currentRecipe.recipeID}
+      );
+      final checkForFavoriteStatusDBResultList = checkForFavoriteStatusDBResult.toList();
+      if (checkForFavoriteStatusDBResultList.isEmpty) {
+        Fluttertoast.showToast(
+            msg: 'Successfully unfavorited recipe!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.grey,
+            textColor: Colors.black
+        );
+      } else {
+        Fluttertoast.showToast(
+            msg: 'Error: Could not unfavorite current recipe!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.grey,
+            textColor: Colors.black
+        );
+      }
+    } else {
+      // Case: DB entry does not in DB yet
+      // Add new table entry in DB
+      await conn.execute(
+          Sql.named('INSERT INTO user_favorite VALUES (@username, @recipeID)'),
+          parameters: {'username': currentUsername, 'recipeID': widget._currentRecipe.recipeID}
+      );
+      // Check if table entry was successfully added to DB
+      final checkForFavoriteStatusDBResult = await conn.execute(
+          Sql.named('SELECT * FROM user_favorite WHERE username = @username AND recipe_id = @recipeID'),
+          parameters: {'username': currentUsername, 'recipeID': widget._currentRecipe.recipeID}
+      );
+      final checkForFavoriteStatusDBResultList = checkForFavoriteStatusDBResult.toList();
+      if (checkForFavoriteStatusDBResultList.isNotEmpty) {
+        Fluttertoast.showToast(
+            msg: 'Successfully favorited recipe!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.grey,
+            textColor: Colors.black
+        );
+      } else {
+        Fluttertoast.showToast(
+            msg: 'Error: Could not favorite current recipe!',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.grey,
+            textColor: Colors.black
+        );
+      }
+    }
+    // Close connection to DB
+    await conn.close();
+    // Update local variable '_isFavorite'
+    _isFavorite = newFavoriteStatus;
+    // Refresh screen
+    setState(() {});
   }
 }

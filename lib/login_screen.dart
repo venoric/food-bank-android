@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (inputtedUsername == null || inputtedUsername.isEmpty) {
                       return 'Please enter a username';
                     }
-                    // Set _username for later use (DB query)
+                    // Set '_username' for later use (DB query)
                     _username = inputtedUsername;
                     return null;
                   },
@@ -58,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (inputtedPassword == null || inputtedPassword.isEmpty) {
                       return 'Please enter a password';
                     }
-                    // Set _password for later use (DB query)
+                    // Set '_password' for later use (DB query)
                     _password = inputtedPassword;
                     return null;
                   },

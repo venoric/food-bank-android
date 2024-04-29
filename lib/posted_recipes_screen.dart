@@ -45,7 +45,7 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
                           title: Text(postedRecipes.elementAt(index).name),
                           leading: Image.network(postedRecipes.elementAt(index).imageURL),
                           onTap: () {
-                            // Go to screen for selected posted recipe and pass over the chosen recipe's Recipe instance as well
+                            // Go to screen for selected posted recipe and pass over the chosen recipe's 'Recipe' instance as well
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => RecipeInformationScreen(postedRecipes.elementAt(index))),

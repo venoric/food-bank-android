@@ -42,7 +42,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedUsername == null || inputtedUsername.isEmpty) {
                           return 'Please enter a username';
                         }
-                        // Set _username for later use (DB query)
+                        // Set '_username' for later use (DB query)
                         _username = inputtedUsername;
                         return null;
                       },
@@ -62,7 +62,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedPassword == null || inputtedPassword.isEmpty) {
                           return 'Please enter a password';
                         }
-                        // Set _password for later use (DB query)
+                        // Set '_password' for later use (DB query)
                         _password = inputtedPassword;
                         return null;
                       },
@@ -82,7 +82,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedConfirmPassword == null || inputtedConfirmPassword.isEmpty) {
                           return 'Please enter your password a second time';
                         }
-                        // Set _confirmPassword for later use (matching password check)
+                        // Set '_confirmPassword' for later use (matching password check)
                         _confirmPassword = inputtedConfirmPassword;
                         return null;
                       },
@@ -101,7 +101,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedFirstName == null || inputtedFirstName.isEmpty) {
                           return 'Please enter your first name';
                         }
-                        // Set _firstName for later use (DB query)
+                        // Set '_firstName' for later use (DB query)
                         _firstName = inputtedFirstName;
                         return null;
                       },
@@ -120,7 +120,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedLastName == null || inputtedLastName.isEmpty) {
                           return 'Please enter your last name';
                         }
-                        // Set _lastName for later use (DB query)
+                        // Set '_lastName' for later use (DB query)
                         _lastName = inputtedLastName;
                         return null;
                       },
@@ -139,7 +139,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (inputtedEmail == null || inputtedEmail.isEmpty) {
                           return 'Please enter your email';
                         }
-                        // Set _email for later use (DB query)
+                        // Set '_email' for later use (DB query)
                         _email = inputtedEmail;
                         return null;
                       },

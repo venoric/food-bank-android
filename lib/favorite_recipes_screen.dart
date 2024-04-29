@@ -43,7 +43,7 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                           title: Text(favoriteRecipes.elementAt(index).name),
                           leading: Image.network(favoriteRecipes.elementAt(index).imageURL),
                           onTap: () {
-                            // Go to screen for selected favorite recipe and pass over the chosen recipe's Recipe instance as well
+                            // Go to screen for selected favorite recipe and pass over the chosen recipe's 'Recipe' instance as well
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => RecipeInformationScreen(favoriteRecipes.elementAt(index))),

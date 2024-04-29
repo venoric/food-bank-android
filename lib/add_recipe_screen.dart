@@ -25,7 +25,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   // - RossPlaysAC, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons
   final String _recipeImageURL = 'https://upload.wikimedia.org/wikipedia/commons/3/3b/PlaceholderRoss.png';
 
-  // Fix problem with DropDownMenuItem
+  // Fix problem with 'DropDownMenuItem'
   // https://stackoverflow.com/questions/59925233/either-zero-or-2-or-more-dropdownmenuitems-were-detected-with-the-same-value
   bool _selected = false;
 
@@ -60,7 +60,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               if (inputtedRecipeName == null || inputtedRecipeName.isEmpty) {
                                 return 'Please enter a recipe name';
                               }
-                              // Set _recipeName for later use (DB query)
+                              // Set '_recipeName' for later use (DB query)
                               _recipeName = inputtedRecipeName;
                               return null;
                             },
@@ -102,7 +102,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               if (inputtedServings == null || inputtedServings.isEmpty) {
                                 return 'Please enter the number of servings for this recipe';
                               }
-                              // Set _recipeCategory for later use (DB query)
+                              // Set '_recipeCategory' for later use (DB query)
                               _recipeNumberServings = int.parse(inputtedServings);
                               return null;
                             },
@@ -123,7 +123,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               if (inputtedIngredients == null || inputtedIngredients.isEmpty) {
                                 return 'Please enter the ingredients for this recipe';
                               }
-                              // Set _recipeIngredients for later use (DB query)
+                              // Set '_recipeIngredients' for later use (DB query)
                               _recipeIngredients = inputtedIngredients;
                               return null;
                             },
@@ -144,7 +144,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               if (inputtedInstructions == null || inputtedInstructions.isEmpty) {
                                 return 'Please enter the instructions for this recipe';
                               }
-                              // Set _recipeInstructions for later use (DB query)
+                              // Set '_recipeInstructions' for later use (DB query)
                               _recipeInstructions = inputtedInstructions;
                               return null;
                             },
@@ -229,7 +229,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     final categoryNamesFetchResultList = categoryNamesFetchResult.toList();
     // Close connection to DB
     await conn.close();
-    // Convert to List of String
+    // Convert to 'List' of type 'String'
     for (var i = 0; i < categoryNamesFetchResultList.length; ++i) {
       // Remove beginning and ending square brackets from each of the category names
       String currentCategory = categoryNamesFetchResultList[i].toString().substring(1, categoryNamesFetchResultList[i].toString().length - 1);
@@ -237,7 +237,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
     }
     // Remove 'random' from list of categories
     categories.remove('random');
-    // Return List
+    // Return list of categories
     return categories;
   }
 }
