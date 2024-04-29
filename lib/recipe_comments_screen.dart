@@ -67,14 +67,12 @@ class _RecipeCommentsScreenState extends State<RecipeCommentsScreen> {
                   // Fetch currently logged in user's username
                   final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
                   // Add comment to local list and DB
-                  setState(() {
-                    // Construct new RecipeComment object with current recipe's ID, current user's username, comment, and timestamp
-                    RecipeComment newComment = RecipeComment(widget.currentRecipeID, currentUsername, commentController.text, DateTime.now());
-                    // Add to local list for current recipe's comments
-                    commentsCurrentRecipe.add(newComment);
-                    // Connect to DB to add new comment for current recipe
-                    _addCommentCurrentRecipeToDB(newComment);
-                  });
+                  // Construct new RecipeComment object with current recipe's ID, current user's username, comment, and timestamp
+                  RecipeComment newComment = RecipeComment(widget.currentRecipeID, currentUsername, commentController.text, DateTime.now());
+                  // Add to local list for current recipe's comments
+                  commentsCurrentRecipe.add(newComment);
+                  // Connect to DB to add new comment for current recipe
+                  _addCommentCurrentRecipeToDB(newComment);
                   commentController.clear();
                   FocusScope.of(context).unfocus();
                 }
