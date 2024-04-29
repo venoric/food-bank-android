@@ -110,7 +110,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               if (inputtedServings == null || inputtedServings.isEmpty) {
                                 return 'Please enter the number of servings for this recipe';
                               }
-                              // Set '_recipeCategory' for later use (DB query)
+                              // Set '_recipeNumberServings' for later use (DB query)
                               _recipeNumberServings = int.parse(inputtedServings);
                               return null;
                             },
