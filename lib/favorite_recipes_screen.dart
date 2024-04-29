@@ -68,7 +68,10 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                         );
                       },
                       separatorBuilder: (context, index) => Divider(),
-                    )
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 10),
+                    ),
                   ],
                 )
             );

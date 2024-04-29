@@ -116,7 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                     separatorBuilder: (context, index) => Divider(),
-                  )
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 10),
+                  ),
                 ],
               ),
               floatingActionButton: Column(

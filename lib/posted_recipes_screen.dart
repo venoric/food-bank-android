@@ -93,7 +93,10 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
                         );
                       },
                       separatorBuilder: (context, index) => Divider(),
-                    )
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: 10),
+                    ),
                   ],
                 )
             );
