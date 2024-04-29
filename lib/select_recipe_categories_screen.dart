@@ -29,7 +29,13 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Recipe Categories'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Select Recipe Categories', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+        centerTitle: true,
       ),
       body: FutureBuilder<List<String>>(
         future: _fetchCategories(),
@@ -76,6 +82,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
         onPressed: () async {
           // Update selected categories list (using Flutter Secure Storage)
           await SecureStorage().updateSelectedRecipeCategories(_selectedCategories);
@@ -84,7 +91,7 @@ class _SelectRecipeCategoriesScreenState extends State<SelectRecipeCategoriesScr
           // Go back to home screen
           Navigator.of(context).pop(context);
         },
-        child: const Icon(Icons.save),
+        child: const Icon(Icons.save, color: Colors.white),
       ),
     );
   }

@@ -16,7 +16,11 @@ class _LandingScreenState extends State<LandingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Welcome to FoodBank')),
+      appBar: AppBar(
+        title: const Text('Welcome to FoodBank', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+        centerTitle: true,
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 100.0),

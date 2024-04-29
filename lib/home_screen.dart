@@ -38,11 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 slivers: <Widget>[
                   SliverAppBar(
                     automaticallyImplyLeading: false, // Remove back button
-                    title: const Text('FoodBank Home'),
+                    title: const Text('FoodBank Home', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Colors.green,
+                    centerTitle: true,
                     pinned: true,
                     actions: <Widget>[
                       PopupMenuButton(
-                        icon: const Icon(Icons.more_vert),
+                        icon: const Icon(Icons.more_vert, color: Colors.white),
                         itemBuilder: (context) {
                           return [
                             PopupMenuItem(
@@ -122,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Floating Action Button for Adding Recipe
                   FloatingActionButton(
+                    backgroundColor: Colors.green,
                     onPressed: () {
                       // Let user add their own recipe to the DB
                       Navigator.push(
@@ -129,21 +132,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(builder: (context) => AddRecipeScreen(refreshRecipeList: _refreshRecipeList))
                       );
                     },
-                    child: const Icon(Icons.add),
+                    child: const Icon(Icons.add, color: Colors.white),
                   ),
                   const SizedBox(
                     height: 30.0,
                   ),
                   // Floating Action Button for Filtering Recipes on Home Screen Based on Category
                   FloatingActionButton(
+                    backgroundColor: Colors.green,
                     onPressed: () {
                       // Let user select filters for the available recipe categories
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SelectRecipeCategoriesScreen(refreshRecipeList: _refreshRecipeList)),
+                        context,
+                        MaterialPageRoute(builder: (context) => SelectRecipeCategoriesScreen(refreshRecipeList: _refreshRecipeList)),
                       );
                     },
-                    child: const Icon(Icons.filter_list),
+                    child: const Icon(Icons.filter_list, color: Colors.white),
                   ),
                 ],
               ),

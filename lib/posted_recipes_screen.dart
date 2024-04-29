@@ -32,8 +32,14 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
             return Scaffold(
                 body: CustomScrollView(
                   slivers: <Widget>[
-                    const SliverAppBar(
-                      title: Text('Posted Recipes'),
+                    SliverAppBar(
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      title: const Text('Posted Recipes', style: TextStyle(color: Colors.white)),
+                      backgroundColor: Colors.green,
+                      centerTitle: true,
                     ),
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 10),

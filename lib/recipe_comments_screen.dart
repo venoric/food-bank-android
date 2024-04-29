@@ -56,7 +56,10 @@ class _RecipeCommentsScreenState extends State<RecipeCommentsScreen> {
           // Get comments for current recipe from DB
           List<RecipeComment> commentsCurrentRecipe = snapshot.data!;
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              title: const Text('Comments'),
+              centerTitle: true,
+            ),
             body: CommentBox(
               child: commentChild(commentsCurrentRecipe),
               labelText: 'Write a comment...',

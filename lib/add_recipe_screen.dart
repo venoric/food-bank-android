@@ -41,7 +41,15 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
           // Case: Successfully fetched available categories
           late List<String> recipeCategoryList = snapshot.data!;
           return Scaffold(
-            appBar: AppBar(title: const Text('Add Recipe')),
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: const Text('Add Recipe', style: TextStyle(color: Colors.white)),
+              backgroundColor: Colors.green,
+              centerTitle: true,
+            ),
             body: Form(
               key: _formKey,
               child: Center(
