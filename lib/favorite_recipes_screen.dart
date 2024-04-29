@@ -16,6 +16,13 @@ class FavoriteRecipesScreen extends StatefulWidget {
 
 class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
   @override
+  void initState() {
+    setState(() {
+      super.initState();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Recipe>> (
         future: _fetchFavoriteRecipes(),
@@ -41,40 +48,17 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                       itemBuilder: (context, index) {
                         return ListTile(
                           title: Text(favoriteRecipes.elementAt(index).name),
-                          leading: Image.network(favoriteRecipes.elementAt(index).imageURL),
+                          leading: Image.network(favoriteRecipes.elementAt(index).imageURL, height: 100.0, width: 100.0), // Align images
                           onTap: () {
                             // Go to screen for selected favorite recipe and pass over the chosen recipe's 'Recipe' instance as well
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => RecipeInformationScreen(favoriteRecipes.elementAt(index))),
-                            );
-                          },
-                          trailing: GestureDetector(
-                            onTap: () async {
-                              // Remove favorite recipe from DB for current user
-                              final conn = await Connection.open(
-                                  Endpoint(
-                                    host: 'food-bank-database.c72m8ic4gtlt.us-east-1.rds.amazonaws.com',
-                                    database: 'food-bank-database',
-                                    username: 'postgres',
-                                    password: 'Aminifoodbank123',
-                                  )
-                              );
-                              // Fetch currently logged in user's username
-                              final currentUsername = await SecureStorage().retrieveLoggedInUser('loggedInUser');
-                              final removeFavoriteRecipeFromDBResult = await conn.execute(
-                                Sql.named('DELETE FROM user_favorite WHERE username = @username AND recipe_id = @recipe_id'),
-                                parameters: {'username': currentUsername, 'recipe_id': favoriteRecipes.elementAt(index).recipeID},
-                              );
-                              // Close connection to DB
-                              await conn.close();
-                              // Remove favorite recipe from local list
-                              favoriteRecipes.removeAt(index);
-                              // Refresh state
+                            ).then((_) {
+                              // Refresh screen in case any recipes get unfavorited
                               setState(() {});
-                            },
-                            child: Icon(Icons.delete),
-                          ),
+                            });
+                          }
                         );
                       },
                       separatorBuilder: (context, index) => Divider(),
@@ -112,7 +96,7 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
     );
     // Get all recipe id's that correspond to what recipes the user favorited
     final favoriteRecipesFetchResult = await conn.execute(
-      Sql.named('SELECT recipe.* FROM user_favorite JOIN recipe ON recipe_id = recipe.id WHERE user_favorite.username = @username'),
+      Sql.named('SELECT recipe.* FROM user_favorite JOIN recipe ON recipe_id = recipe.id WHERE user_favorite.username = @username ORDER BY recipe.name ASC '),
       parameters: {'username': currentUsername},
     );
     final favoriteRecipesFetchResultList = favoriteRecipesFetchResult.toList();
