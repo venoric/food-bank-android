@@ -54,7 +54,7 @@ class _FavoriteRecipesScreenState extends State<FavoriteRecipesScreen> {
                       itemBuilder: (context, index) {
                         return ListTile(
                           title: Text(favoriteRecipes.elementAt(index).name),
-                          leading: Image.network(favoriteRecipes.elementAt(index).imageURL, height: 100.0, width: 100.0), // Align images
+                          leading: Image.network(favoriteRecipes.elementAt(index).imageURL, height: 100.0, width: 100.0, fit: BoxFit.cover), // Align images
                           onTap: () {
                             // Go to screen for selected favorite recipe and pass over the chosen recipe's 'Recipe' instance as well
                             Navigator.push(

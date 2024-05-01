@@ -49,7 +49,7 @@ class _PostedRecipesScreenState extends State<PostedRecipesScreen> {
                       itemBuilder: (context, index) {
                         return ListTile(
                           title: Text(postedRecipes.elementAt(index).name),
-                          leading: Image.network(postedRecipes.elementAt(index).imageURL),
+                          leading: Image.network(postedRecipes.elementAt(index).imageURL, height: 100.0, width: 100.0, fit: BoxFit.cover),
                           onTap: () {
                             // Go to screen for selected posted recipe and pass over the chosen recipe's 'Recipe' instance as well
                             Navigator.push(
