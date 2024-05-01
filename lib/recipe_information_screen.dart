@@ -173,7 +173,7 @@ class _RecipeInformationScreenState extends State<RecipeInformationScreen> {
                         children: [
                           ListTile(
                             title: Text(suggestedRecipes.elementAt(index).name),
-                            leading: Image.network(suggestedRecipes.elementAt(index).imageURL),
+                            leading: Image.network(suggestedRecipes.elementAt(index).imageURL, height: 100.0, width: 100.0, fit: BoxFit.cover),
                             onTap: () {
                               // Go to screen for suggested recipe and pass over the chosen recipe's 'Recipe' instance as well
                               Navigator.push(
